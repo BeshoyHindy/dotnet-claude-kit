@@ -31,6 +31,8 @@ After (with dotnet-claude-kit):
 
 ## Installation
 
+### Option A: Clone and Use Directly
+
 ```bash
 # Clone the repository
 git clone https://github.com/BeshoyHindy/dotnet-claude-kit.git
@@ -38,6 +40,25 @@ git clone https://github.com/BeshoyHindy/dotnet-claude-kit.git
 # Run Claude Code with the plugin
 claude --plugin-dir ./dotnet-claude-kit
 ```
+
+### Option B: Add as Marketplace (Recommended for Teams)
+
+Add to your `.claude/settings.json`:
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "dotnet-tools": {
+      "source": {
+        "source": "github",
+        "repo": "BeshoyHindy/dotnet-claude-kit"
+      }
+    }
+  }
+}
+```
+
+Then install plugins using `/plugin install` command.
 
 That's it! The plugin is now active. Use skills, agents, and commands in your prompts.
 
