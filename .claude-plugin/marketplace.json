@@ -1,0 +1,13 @@
+{
+  "name": "dotnet-tools",
+  "owner": {
+    "name": "BeshoyHindy"
+  },
+  "plugins": [
+    {
+      "name": "dotnet-claude-kit",
+      "source": "./",
+      "description": "Claude Code plugin for .NET development. 18 production-ready skills for Clean Architecture, CQRS, authentication, authorization, caching, EF Core, domain events, validation, testing, and more."
+    }
+  ]
+}
