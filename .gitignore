@@ -1,0 +1,40 @@
+# .NET
+bin/
+obj/
+packages/
+*.user
+*.suo
+*.nupkg
+*.snupkg
+
+# IDE
+.vs/
+.idea/
+.vscode/
+
+# Claude Code local
+.claude/settings.local.json
+.claude/CLAUDE.local.md
+.claude/*.local.*
+
+# Test & Coverage
+TestResults/
+*.trx
+coverage/
+*.coveragexml
+*.coverage
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets
+.env
+.env.*
+*.pfx
+*.pem
+*.key
+appsettings.*.json
+!appsettings.json
+!appsettings.Development.json
+secrets.json

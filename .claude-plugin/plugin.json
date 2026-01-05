@@ -1,0 +1,7 @@
+{
+  "name": "dotnet-claude-kit",
+  "version": "0.1.0",
+  "description": "Claude Code extensibility toolkit for .NET, C#, ASP.NET Core, and backend development",
+  "license": "MIT",
+  "outputStyles": "./output-styles/"
+}
