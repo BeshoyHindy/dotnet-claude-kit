@@ -126,49 +126,6 @@ skills/{name}/
 2. **Progressive Disclosure** - Core concepts in SKILL.md, framework details in references/
 3. **No Assumptions** - You choose your frameworks and libraries
 
-## Skill Combinations
-
-Skills work together for common scenarios:
-
-```mermaid
-graph TD
-    subgraph "Vertical Slice Feature"
-        CQRS[cqrs] --> VP[validation]
-        VP --> RP[result-pattern]
-    end
-
-    subgraph "Secure API"
-        AUTH[authentication] --> AUTHZ[authorization]
-        AUTHZ --> API[api-design]
-    end
-
-    subgraph "Reliable Events"
-        DE[domain-events] --> OP[outbox-pattern]
-    end
-
-    subgraph "Audited Entities"
-        EF[efcore] --> EA[entity-auditing]
-        EA --> SD[soft-delete]
-    end
-
-    subgraph "Observable API"
-        LOG[logging] --> EH[exception-handling]
-        EH --> OA[openapi]
-    end
-
-    CQRS -.->|"handlers use"| EF
-    AUTH -.->|"protect"| CQRS
-    RP -.->|"used by"| EH
-```
-
-| Pattern | Skills | Use Case |
-|---------|--------|----------|
-| **Vertical Slice** | cqrs + validation + result-pattern | Complete feature implementation |
-| **Secure Endpoint** | authentication + authorization + api-design | Protected API endpoints |
-| **Reliable Events** | domain-events + outbox-pattern | Events that survive crashes |
-| **Audited Entity** | efcore + entity-auditing + soft-delete | Full audit trail |
-| **Observable API** | logging + exception-handling + openapi | Production monitoring |
-
 ## Project Structure
 
 ```
@@ -185,19 +142,10 @@ dotnet-claude-kit/
 └── examples/         # Configuration examples
 ```
 
-## Sources
-
-Built on authoritative references:
-
-- [Microsoft CQRS Pattern](https://learn.microsoft.com/en-us/azure/architecture/patterns/cqrs)
-- [ASP.NET Core Documentation](https://learn.microsoft.com/en-us/aspnet/core/)
-- [EF Core Documentation](https://learn.microsoft.com/en-us/ef/core/)
-- [Clean Architecture - Milan Jovanovic](https://www.milanjovanovic.tech/blog/clean-architecture-folder-structure)
-
 ## Status
 
 **v0.1.0** - Initial release. Production-ready patterns for .NET development.
 
 ---
 
-[Changelog](CHANGELOG.md) | [Contributing](CONTRIBUTING.md) | [Code of Conduct](CODE_OF_CONDUCT.md) | [Security](SECURITY.md)
+[Changelog](CHANGELOG.md) | [Contributing](CONTRIBUTING.md)

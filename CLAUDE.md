@@ -87,18 +87,6 @@ API design or security review?
 | `testing` | Writing unit or integration tests |
 | `validation` | Implementing request validation |
 
-## Skill Combinations
-
-Common patterns that use multiple skills together:
-
-| Pattern | Skills | Description |
-|---------|--------|-------------|
-| **Vertical Slice** | cqrs + validation + result-pattern | Complete feature with handler, validator, error handling |
-| **Secure Endpoint** | authentication + authorization + api-design | Protected API with proper auth flow |
-| **Reliable Events** | domain-events + outbox-pattern | Events that survive crashes |
-| **Audited Entity** | efcore + entity-auditing + soft-delete | Full audit trail with soft delete |
-| **Observable API** | logging + exception-handling + openapi | Production-ready API with observability |
-
 ## Code Style Requirements
 
 ### Always Use
