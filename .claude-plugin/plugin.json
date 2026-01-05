@@ -8,11 +8,6 @@
   "license": "MIT",
   "repository": "https://github.com/BeshoyHindy/dotnet-claude-kit",
   "homepage": "https://github.com/BeshoyHindy/dotnet-claude-kit#readme",
-  "skills": "./skills/",
-  "agents": "./agents/",
-  "commands": "./commands/",
-  "outputStyles": "./output-styles/",
-  "hooks": "./hooks/hooks.json",
   "keywords": [
     "dotnet",
     "csharp",
