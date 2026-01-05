@@ -7,7 +7,7 @@
 ### Step 1: Install the Plugin
 
 ```bash
-git clone https://github.com/your-org/dotnet-claude-kit.git
+git clone https://github.com/BeshoyHindy/dotnet-claude-kit.git
 claude --plugin-dir ./dotnet-claude-kit
 ```
 
