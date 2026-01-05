@@ -31,34 +31,15 @@ After (with dotnet-claude-kit):
 
 ## Installation
 
-### Option A: Clone and Use Locally
-
 ```bash
 # Clone the repository
 git clone https://github.com/BeshoyHindy/dotnet-claude-kit.git
 
-# Navigate to your .NET project directory
-cd your-project
-
-# Start Claude Code with the plugin
-claude --plugin-dir /path/to/dotnet-claude-kit
+# Run Claude Code with the plugin
+claude --plugin-dir ./dotnet-claude-kit
 ```
 
-### Option B: Add to Project (Recommended for Teams)
-
-Add to your project's `.claude/settings.json`:
-
-```json
-{
-  "plugins": {
-    "dotnet-claude-kit": {
-      "source": "github:BeshoyHindy/dotnet-claude-kit"
-    }
-  }
-}
-```
-
-Then run `claude` in your project directory.
+That's it! The plugin is now active. Use skills, agents, and commands in your prompts.
 
 ## Usage
 
