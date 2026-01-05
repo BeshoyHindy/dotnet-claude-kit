@@ -1,5 +1,5 @@
 // Infrastructure/Authorization/Requirements/ResourceOwnerRequirement.cs
-namespace YourApp.Infrastructure.Authorization.Requirements;
+namespace YourNamespace.Infrastructure.Authorization.Requirements;
 
 using Microsoft.AspNetCore.Authorization;
 
@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 public sealed class ResourceOwnerRequirement : IAuthorizationRequirement { }
 
 // Domain/Common/IOwnedEntity.cs
-namespace YourApp.Domain.Common;
+namespace YourNamespace.Domain.Common;
 
 /// <summary>
 /// Marker interface for entities that have an owner.
@@ -20,11 +20,11 @@ public interface IOwnedEntity
 }
 
 // Infrastructure/Authorization/Handlers/ResourceOwnerHandler.cs
-namespace YourApp.Infrastructure.Authorization.Handlers;
+namespace YourNamespace.Infrastructure.Authorization.Handlers;
 
 using Microsoft.AspNetCore.Authorization;
-using YourApp.Domain.Common;
-using YourApp.Infrastructure.Authorization.Requirements;
+using YourNamespace.Domain.Common;
+using YourNamespace.Infrastructure.Authorization.Requirements;
 
 /// <summary>
 /// Generic handler for resource ownership authorization.
@@ -56,9 +56,9 @@ public sealed class ResourceOwnerHandler
 }
 
 // Example entity implementing IOwnedEntity
-namespace YourApp.Domain.Orders;
+namespace YourNamespace.Domain.Orders;
 
-using YourApp.Domain.Common;
+using YourNamespace.Domain.Common;
 
 public sealed class Order : AuditableEntity, IOwnedEntity
 {
@@ -72,12 +72,12 @@ public sealed class Order : AuditableEntity, IOwnedEntity
 }
 
 // Example usage in a command handler
-namespace YourApp.Application.Orders.Commands.UpdateOrder;
+namespace YourNamespace.Application.Orders.Commands.UpdateOrder;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
-using YourApp.Application.Common.Interfaces;
-using YourApp.Domain.Common;
+using YourNamespace.Application.Common.Interfaces;
+using YourNamespace.Domain.Common;
 
 public sealed class UpdateOrderHandler(
     IDbContext db,

@@ -21,25 +21,28 @@ public interface IDomainEvent
 }
 
 // Domain/Common/DomainEvent.cs
-public abstract record DomainEvent : IDomainEvent
+// OccurredOn passed via constructor for TimeProvider testability
+public abstract record DomainEvent(DateTimeOffset OccurredOn) : IDomainEvent
 {
     public Guid EventId { get; } = Guid.NewGuid();
-    public DateTimeOffset OccurredOn { get; } = DateTimeOffset.UtcNow;
 }
 
 // Domain/Orders/Events/OrderCreatedEvent.cs
 public sealed record OrderCreatedEvent(
     Guid OrderId,
     Guid CustomerId,
-    string OrderNumber) : DomainEvent;
+    string OrderNumber,
+    DateTimeOffset OccurredOn) : DomainEvent(OccurredOn);
 
 public sealed record OrderSubmittedEvent(
     Guid OrderId,
-    decimal TotalAmount) : DomainEvent;
+    decimal TotalAmount,
+    DateTimeOffset OccurredOn) : DomainEvent(OccurredOn);
 
 public sealed record OrderCancelledEvent(
     Guid OrderId,
-    string Reason) : DomainEvent;
+    string Reason,
+    DateTimeOffset OccurredOn) : DomainEvent(OccurredOn);
 ```
 
 ## Entity with Events
@@ -75,7 +78,10 @@ public sealed class Order : Entity
 
     private Order() { }
 
-    public static Result<Order> Create(Guid customerId, string orderNumber)
+    public static Result<Order> Create(
+        Guid customerId,
+        string orderNumber,
+        TimeProvider timeProvider)
     {
         if (customerId == Guid.Empty)
             return Error.Validation("Customer ID is required");
@@ -91,31 +97,38 @@ public sealed class Order : Entity
         order.RaiseDomainEvent(new OrderCreatedEvent(
             order.Id,
             order.CustomerId,
-            order.OrderNumber));
+            order.OrderNumber,
+            timeProvider.GetUtcNow()));
 
         return order;
     }
 
-    public Result Submit()
+    public Result Submit(TimeProvider timeProvider)
     {
         if (Status != OrderStatus.Draft)
             return Error.Validation("Only draft orders can be submitted");
 
         Status = OrderStatus.Submitted;
 
-        RaiseDomainEvent(new OrderSubmittedEvent(Id, CalculateTotal()));
+        RaiseDomainEvent(new OrderSubmittedEvent(
+            Id,
+            CalculateTotal(),
+            timeProvider.GetUtcNow()));
 
         return Result.Success();
     }
 
-    public Result Cancel(string reason)
+    public Result Cancel(string reason, TimeProvider timeProvider)
     {
         if (Status == OrderStatus.Shipped)
             return Error.Validation("Shipped orders cannot be cancelled");
 
         Status = OrderStatus.Cancelled;
 
-        RaiseDomainEvent(new OrderCancelledEvent(Id, reason));
+        RaiseDomainEvent(new OrderCancelledEvent(
+            Id,
+            reason,
+            timeProvider.GetUtcNow()));
 
         return Result.Success();
     }
@@ -294,7 +307,8 @@ public sealed class OrderSubmittedIntegrationEvent : IIntegrationEvent
 
 // Handler converts domain event to integration event
 public sealed class PublishOrderSubmittedIntegration(
-    IEventPublisher publisher)
+    IEventPublisher publisher,
+    TimeProvider timeProvider)
     : IDomainEventHandler<OrderSubmittedEvent>
 {
     public async Task HandleAsync(OrderSubmittedEvent domainEvent, CancellationToken ct)
@@ -302,7 +316,7 @@ public sealed class PublishOrderSubmittedIntegration(
         var integrationEvent = new OrderSubmittedIntegrationEvent
         {
             EventId = Guid.NewGuid(),
-            OccurredOn = DateTimeOffset.UtcNow,
+            OccurredOn = timeProvider.GetUtcNow(),
             OrderId = domainEvent.OrderId
         };
 

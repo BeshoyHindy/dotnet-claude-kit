@@ -1,183 +1,181 @@
 # dotnet-claude-kit
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.2.0-green.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](CHANGELOG.md)
 [![Claude Code Plugin](https://img.shields.io/badge/Claude%20Code-Plugin-purple.svg)](https://docs.anthropic.com/en/docs/claude-code)
 
-> Claude Code extensibility toolkit for .NET development
+## The Problem
 
-## Status
+AI coding assistants are powerful, but they often produce .NET code that:
 
-**v0.2.0** - Pattern-First Redesign
+- **Misses architectural patterns** - No Clean Architecture, CQRS, or proper layering
+- **Ignores best practices** - DateTime.Now instead of TimeProvider, exceptions instead of Result pattern
+- **Lacks consistency** - Different error handling, naming, and structure across files
+- **Requires extensive rework** - Generated code doesn't match your project's standards
 
-Skills teach patterns first, with framework-specific implementations as optional references. No assumptions about which framework you use.
+## The Solution
 
-## Skills
-
-Pattern-first skills with optional framework references:
-
-| Skill | Description |
-|-------|-------------|
-| `api-design` | API response patterns, pagination, filtering. Consistent API design conventions |
-| `authentication` | JWT authentication, token generation/validation, refresh tokens |
-| `authorization` | Role-based and policy-based authorization. Permissions, claims, custom requirements |
-| `caching` | Caching patterns with IMemoryCache, IDistributedCache, Redis. Cache-aside, invalidation |
-| `clean-architecture` | Layer organization and dependency rules |
-| `cqrs` | Command Query Responsibility Segregation pattern. Framework-agnostic with optional MediatR/Wolverine references |
-| `domain-events` | Domain events for decoupled communication. Event raising, handling, dispatching patterns |
-| `efcore` | Entity Framework Core configuration and query patterns |
-| `entity-auditing` | Entity audit fields (CreatedBy, CreatedOn, UpdatedBy, UpdatedOn). Automatic tracking |
-| `exception-handling` | Global exception handling with Problem Details (RFC 7807) |
-| `logging` | Structured logging patterns with ILogger, Serilog integration, correlation IDs |
-| `openapi` | OpenAPI (Swagger) documentation. API docs, versioning, request/response examples |
-| `outbox-pattern` | Transactional outbox pattern for reliable messaging |
-| `rate-limiting` | API rate limiting with built-in .NET rate limiters |
-| `result-pattern` | Result<T> for explicit error handling. Railway-oriented programming |
-| `soft-delete` | Soft delete pattern - mark entities as deleted instead of removing |
-| `testing` | Unit and integration testing patterns with framework options |
-| `validation` | Validation patterns with optional FluentValidation reference |
-
-### Skill Structure
-
-Each skill follows progressive disclosure:
+**dotnet-claude-kit** gives Claude Code deep knowledge of .NET patterns and practices. Instead of generic code, you get production-ready implementations that follow your architectural decisions.
 
 ```
-skills/{skill-name}/
-├── SKILL.md           # Core pattern (framework-agnostic)
-├── references/        # Framework-specific implementations
-│   └── with-{framework}.md
-└── assets/            # Reusable code templates
-    └── *.cs
-```
+Before: "Create an order handler"
+→ Generic handler with try-catch and exceptions
 
-## Agents
-
-| Agent | Model | When to Use |
-|-------|-------|-------------|
-| `dotnet-architect` | opus | Architecture reviews, layer validation, refactoring decisions |
-| `wolverine-expert` | sonnet | Projects using Wolverine for CQRS/messaging (skip if using MediatR) |
-| `efcore-specialist` | sonnet | Entity configuration, query optimization, migrations |
-| `testing-specialist` | sonnet | Test design, any test framework (xUnit, MSTest, NUnit) |
-| `api-reviewer` | sonnet | Endpoint security, REST conventions, API design review |
-
-## Commands
-
-| Command | Description |
-|---------|-------------|
-| `/dotnet-feature` | Scaffold vertical slice feature |
-| `/dotnet-test` | Run tests with coverage |
-| `/dotnet-migrate` | Manage EF Core migrations |
-| `/dotnet-validate` | Validate architecture rules |
-
-## Structure
-
-```
-dotnet-claude-kit/
-├── skills/                      # 18 pattern-first skills
-├── agents/                      # 5 specialized agents
-├── commands/                    # 4 workflow commands
-├── output-styles/               # Response formatting (3 styles)
-├── hooks/                       # Event-based automation
-├── scripts/                     # Helper shell scripts
-├── docs/                        # Documentation
-├── .claude-plugin/plugin.json   # Plugin manifest
-├── CHANGELOG.md
-├── CLAUDE.md
-└── README.md
+After (with dotnet-claude-kit):
+→ CQRS command handler returning Result<T>
+→ FluentValidation validator
+→ Proper file organization following Clean Architecture
+→ TimeProvider for testability
+→ Domain events for side effects
 ```
 
 ## Installation
 
-### Option 1: Claude Code Plugin (Recommended)
-
-Install as a Claude Code plugin to enable skills, agents, and commands:
+### Option A: Clone and Use Locally
 
 ```bash
 # Clone the repository
-git clone https://github.com/dotnet-claude-kit/dotnet-claude-kit.git
+git clone https://github.com/BeshoyHindy/dotnet-claude-kit.git
 
-# Run Claude Code with the plugin
-claude --plugin-dir ./dotnet-claude-kit
+# Navigate to your .NET project directory
+cd your-project
+
+# Start Claude Code with the plugin
+claude --plugin-dir /path/to/dotnet-claude-kit
 ```
 
-Or add to your Claude Code configuration file (`~/.claude/settings.json`):
+### Option B: Add to Project (Recommended for Teams)
+
+Add to your project's `.claude/settings.json`:
 
 ```json
 {
-  "plugins": ["./path/to/dotnet-claude-kit"]
+  "plugins": {
+    "dotnet-claude-kit": {
+      "source": "github:BeshoyHindy/dotnet-claude-kit"
+    }
+  }
 }
 ```
 
-### Option 2: Copy to Project
-
-Copy relevant files directly into your project's `.claude` directory:
-
-```bash
-# Copy all components
-cp -r dotnet-claude-kit/skills ./your-project/.claude/
-cp -r dotnet-claude-kit/agents ./your-project/.claude/
-cp -r dotnet-claude-kit/commands ./your-project/.claude/
-```
-
-Or selectively copy only what you need:
-
-```bash
-# Example: Only CQRS and Result patterns
-cp -r dotnet-claude-kit/skills/cqrs ./your-project/.claude/skills/
-cp -r dotnet-claude-kit/skills/result-pattern ./your-project/.claude/skills/
-```
-
-### Verification
-
-After installation, verify the plugin is loaded:
-
-```bash
-claude /help
-# Should list dotnet-claude-kit commands like /dotnet-feature
-```
+Then run `claude` in your project directory.
 
 ## Usage
 
-### Using Skills
+### Skills
 
-Skills are automatically loaded when relevant. Reference them in prompts:
-
-```
-"Using the result-pattern skill, help me implement error handling"
-"Following clean-architecture principles, review this project structure"
-```
-
-### Using Agents
-
-Invoke specialized agents for domain expertise:
+Skills are loaded automatically. Reference patterns in prompts:
 
 ```
-"@dotnet-architect review the architecture of this solution"
-"@efcore-specialist configure this entity mapping"
+"Implement CreateOrder using the cqrs and result-pattern skills"
+"Add authentication following the authentication skill"
 ```
 
-### Using Commands
+### Agents
 
-Run commands for common workflows:
+Invoke specialists for specific domains:
+
+```
+"@dotnet-architect review this solution's architecture"
+"@efcore-specialist optimize this query"
+```
+
+### Commands
+
+Run workflows:
 
 ```bash
-/dotnet-feature CreateOrder Order    # Scaffold a new feature
-/dotnet-test ./tests                 # Run tests with coverage
-/dotnet-migrate AddUserTable         # Create EF migration
-/dotnet-validate                     # Validate architecture rules
+/dotnet-feature CreateOrder Order    # Scaffold vertical slice
+/dotnet-test ./tests --coverage      # Run tests
+/dotnet-validate                     # Check architecture rules
 ```
+
+## What's Included
+
+### 18 Skills
+
+Pattern-first knowledge with framework-agnostic implementations:
+
+| Category | Skills |
+|----------|--------|
+| **Architecture** | `clean-architecture`, `cqrs`, `result-pattern`, `domain-events` |
+| **Data** | `efcore`, `entity-auditing`, `soft-delete`, `outbox-pattern` |
+| **Security** | `authentication`, `authorization` |
+| **API** | `api-design`, `openapi`, `rate-limiting`, `exception-handling` |
+| **Infrastructure** | `caching`, `logging`, `validation`, `testing` |
+
+Each skill follows progressive disclosure:
+
+```
+skills/{name}/
+├── SKILL.md           # Core pattern (always loaded)
+├── references/        # Framework-specific (loaded on demand)
+│   └── with-{framework}.md
+└── assets/            # Copy-paste code templates
+    └── *.cs
+```
+
+### 5 Agents
+
+| Agent | Model | Specialty |
+|-------|-------|-----------|
+| `dotnet-architect` | opus | Architecture reviews, layer validation |
+| `cqrs-specialist` | sonnet | Handler creation, validation pipelines |
+| `efcore-specialist` | sonnet | Entity configuration, query optimization |
+| `testing-specialist` | sonnet | Test design, mocking strategies |
+| `api-reviewer` | sonnet | Endpoint security, REST conventions |
+
+### 4 Commands
+
+| Command | Purpose |
+|---------|---------|
+| `/dotnet-feature` | Scaffold complete vertical slice |
+| `/dotnet-test` | Run tests with coverage report |
+| `/dotnet-migrate` | Manage EF Core migrations |
+| `/dotnet-validate` | Validate architecture rules |
+
+### 3 Output Styles
+
+| Style | Use Case |
+|-------|----------|
+| `dotnet-concise` | Experienced developers, minimal explanation |
+| `dotnet-teaching` | Learning, includes WHY behind patterns |
+| `dotnet-review` | Code reviews with severity levels |
 
 ## Design Principles
 
-1. **Pattern-First**: Skills teach patterns, not frameworks. Use MediatR, Wolverine, or raw interfaces
-2. **Progressive Disclosure**: Core concepts in SKILL.md, details in references/
-3. **No Assumptions**: Skills don't assume which framework or library you use
-4. **Research-Based**: Patterns sourced from Microsoft docs, community best practices
-5. **Focused**: Each skill under 500 lines, addressing one concern
+1. **Pattern-First** - Skills teach patterns, not frameworks. Works with MediatR, Wolverine, or custom implementations
+2. **Progressive Disclosure** - Core concepts in SKILL.md, framework details in references/
+3. **No Assumptions** - You choose your frameworks and libraries
+4. **Research-Based** - Patterns from Microsoft docs, proven community practices
+5. **Testable Code** - TimeProvider, interfaces, Result pattern throughout
+
+## Project Structure
+
+```
+dotnet-claude-kit/
+├── skills/           # 18 pattern-first skills
+├── agents/           # 5 specialized agents
+├── commands/         # 4 workflow commands
+├── output-styles/    # 3 response formats
+├── hooks/            # Event automation
+├── scripts/          # Shell utilities
+└── docs/             # Documentation
+```
 
 ## Sources
 
-Patterns based on authoritative sources:
+Built on authoritative references:
+
 - [Microsoft CQRS Pattern](https://learn.microsoft.com/en-us/azure/architecture/patterns/cqrs)
-- [Milan Jovanović - CQRS Implementation](https://www.milanjovanovic.tech/blog/cqrs-pattern-the-way-it-should-have-been-from-the-start)
-- [Official Claude Code Documentation](https://docs.anthropic.com/en/docs/claude-code)
+- [ASP.NET Core Documentation](https://learn.microsoft.com/en-us/aspnet/core/)
+- [EF Core Documentation](https://learn.microsoft.com/en-us/ef/core/)
+- [Clean Architecture - Milan Jovanovic](https://www.milanjovanovic.tech/blog/clean-architecture-folder-structure)
+
+## Status
+
+**v0.1.0** - Initial release. Production-ready patterns for .NET development.
+
+---
+
+[Documentation](docs/) | [Changelog](CHANGELOG.md) | [Contributing](CONTRIBUTING.md)

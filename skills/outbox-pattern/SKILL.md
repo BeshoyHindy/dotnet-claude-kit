@@ -65,20 +65,20 @@ public sealed class OutboxMessage
 
     private OutboxMessage() { }
 
-    public static OutboxMessage Create<T>(T message) where T : class
+    public static OutboxMessage Create<T>(T message, DateTimeOffset createdAt) where T : class
     {
         return new OutboxMessage
         {
             Id = Guid.NewGuid(),
             Type = typeof(T).AssemblyQualifiedName!,
             Content = JsonSerializer.Serialize(message),
-            CreatedAt = DateTimeOffset.UtcNow
+            CreatedAt = createdAt
         };
     }
 
-    public void MarkAsProcessed()
+    public void MarkAsProcessed(DateTimeOffset processedAt)
     {
-        ProcessedAt = DateTimeOffset.UtcNow;
+        ProcessedAt = processedAt;
     }
 
     public void MarkAsFailed(string error)
@@ -170,6 +170,7 @@ public sealed class OutboxInterceptor(TimeProvider timeProvider) : SaveChangesIn
 // Infrastructure/BackgroundJobs/OutboxProcessor.cs
 public sealed class OutboxProcessor(
     IServiceScopeFactory scopeFactory,
+    TimeProvider timeProvider,
     ILogger<OutboxProcessor> logger) : BackgroundService
 {
     private readonly TimeSpan _pollingInterval = TimeSpan.FromSeconds(5);
@@ -205,6 +206,7 @@ public sealed class OutboxProcessor(
             .Take(BatchSize)
             .ToListAsync(ct);
 
+        var now = timeProvider.GetUtcNow();
         foreach (var message in messages)
         {
             try
@@ -213,7 +215,7 @@ public sealed class OutboxProcessor(
                 if (@event is not null)
                 {
                     await publisher.PublishAsync(@event, ct);
-                    message.MarkAsProcessed();
+                    message.MarkAsProcessed(now);
                 }
             }
             catch (Exception ex)
@@ -277,7 +279,8 @@ public sealed class Order : Entity
 // Infrastructure/BackgroundJobs/OutboxCleanupJob.cs
 public sealed class OutboxCleanupJob(
     IServiceScopeFactory scopeFactory,
-    ILogger<OutboxCleanupJob> logger) : BackgroundService
+    ILogger<OutboxCleanupJob> logger,
+    TimeProvider timeProvider) : BackgroundService
 {
     private readonly TimeSpan _cleanupInterval = TimeSpan.FromHours(1);
     private readonly TimeSpan _retentionPeriod = TimeSpan.FromDays(7);
@@ -293,7 +296,7 @@ public sealed class OutboxCleanupJob(
                 using var scope = scopeFactory.CreateScope();
                 var db = scope.ServiceProvider.GetRequiredService<IDbContext>();
 
-                var cutoff = DateTimeOffset.UtcNow - _retentionPeriod;
+                var cutoff = timeProvider.GetUtcNow() - _retentionPeriod;
 
                 var deleted = await db.OutboxMessages
                     .Where(m => m.ProcessedAt != null && m.ProcessedAt < cutoff)

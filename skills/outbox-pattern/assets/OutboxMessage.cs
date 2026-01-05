@@ -1,5 +1,5 @@
 // Infrastructure/Data/Outbox/OutboxMessage.cs
-namespace YourApp.Infrastructure.Data.Outbox;
+namespace YourNamespace.Infrastructure.Data.Outbox;
 
 using System.Text.Json;
 
@@ -52,11 +52,11 @@ public sealed class OutboxMessage
 }
 
 // Infrastructure/Data/Configurations/OutboxMessageConfiguration.cs
-namespace YourApp.Infrastructure.Data.Configurations;
+namespace YourNamespace.Infrastructure.Data.Configurations;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using YourApp.Infrastructure.Data.Outbox;
+using YourNamespace.Infrastructure.Data.Outbox;
 
 public class OutboxMessageConfiguration : IEntityTypeConfiguration<OutboxMessage>
 {
@@ -89,13 +89,13 @@ public class OutboxMessageConfiguration : IEntityTypeConfiguration<OutboxMessage
 }
 
 // Infrastructure/Data/Interceptors/OutboxInterceptor.cs
-namespace YourApp.Infrastructure.Data.Interceptors;
+namespace YourNamespace.Infrastructure.Data.Interceptors;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using System.Text.Json;
-using YourApp.Domain.Common;
-using YourApp.Infrastructure.Data.Outbox;
+using YourNamespace.Domain.Common;
+using YourNamespace.Infrastructure.Data.Outbox;
 
 public sealed class OutboxInterceptor(TimeProvider timeProvider) : SaveChangesInterceptor
 {

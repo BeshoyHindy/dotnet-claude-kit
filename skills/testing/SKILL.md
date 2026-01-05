@@ -6,6 +6,8 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 
 # Testing
 
+**Source**: [Unit Testing Best Practices](https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-best-practices) | [Integration Testing](https://learn.microsoft.com/en-us/aspnet/core/test/integration-tests)
+
 Write tests that verify behavior, not implementation. Tests should be readable, maintainable, and provide confidence in changes.
 
 ## Test Organization

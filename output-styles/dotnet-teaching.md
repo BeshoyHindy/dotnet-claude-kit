@@ -1,5 +1,5 @@
 ---
-name: .NET Teaching
+name: dotnet-teaching
 description: Educational style explaining WHY patterns work, for learning and onboarding
 keep-coding-instructions: true
 ---

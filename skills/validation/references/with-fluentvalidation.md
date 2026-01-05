@@ -135,9 +135,17 @@ RuleFor(x => x.ShippingAddress)
     .When(x => x.RequiresShipping)
     .WithMessage("Shipping address required for physical orders");
 
-When(x => x.OrderType == OrderType.Subscription, () =>
+// For validators needing current time, inject TimeProvider
+public sealed class SubscriptionValidator : AbstractValidator<CreateSubscriptionCommand>
 {
-    RuleFor(x => x.BillingCycle).NotNull();
-    RuleFor(x => x.StartDate).GreaterThan(DateOnly.FromDateTime(DateTime.UtcNow));
-});
+    public SubscriptionValidator(TimeProvider timeProvider)
+    {
+        When(x => x.OrderType == OrderType.Subscription, () =>
+        {
+            RuleFor(x => x.BillingCycle).NotNull();
+            RuleFor(x => x.StartDate)
+                .GreaterThan(DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime));
+        });
+    }
+}
 ```

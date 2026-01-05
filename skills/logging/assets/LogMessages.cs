@@ -1,5 +1,5 @@
 // Application/Common/Logging/LogMessages.cs
-namespace YourApp.Application.Common.Logging;
+namespace YourNamespace.Application.Common.Logging;
 
 using Microsoft.Extensions.Logging;
 

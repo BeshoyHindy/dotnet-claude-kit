@@ -1,5 +1,5 @@
 // Api/Middleware/CorrelationIdMiddleware.cs
-namespace YourApp.Api.Middleware;
+namespace YourNamespace.Api.Middleware;
 
 using Microsoft.Extensions.Logging;
 

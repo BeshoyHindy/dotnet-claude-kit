@@ -1,7 +1,7 @@
 // Application/Common/Interfaces/IDomainEventDispatcher.cs
-namespace YourApp.Application.Common.Interfaces;
+namespace YourNamespace.Application.Common.Interfaces;
 
-using YourApp.Domain.Common;
+using YourNamespace.Domain.Common;
 
 public interface IDomainEventDispatcher
 {
@@ -9,12 +9,12 @@ public interface IDomainEventDispatcher
 }
 
 // Infrastructure/Events/DomainEventDispatcher.cs
-namespace YourApp.Infrastructure.Events;
+namespace YourNamespace.Infrastructure.Events;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using YourApp.Application.Common.Interfaces;
-using YourApp.Domain.Common;
+using YourNamespace.Application.Common.Interfaces;
+using YourNamespace.Domain.Common;
 
 /// <summary>
 /// Dispatches domain events to registered handlers.
@@ -80,12 +80,12 @@ public sealed class DomainEventDispatcher(
 }
 
 // Infrastructure/Data/Interceptors/DomainEventInterceptor.cs
-namespace YourApp.Infrastructure.Data.Interceptors;
+namespace YourNamespace.Infrastructure.Data.Interceptors;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using YourApp.Application.Common.Interfaces;
-using YourApp.Domain.Common;
+using YourNamespace.Application.Common.Interfaces;
+using YourNamespace.Domain.Common;
 
 /// <summary>
 /// Dispatches domain events after successful SaveChanges.

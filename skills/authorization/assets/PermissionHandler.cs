@@ -1,5 +1,5 @@
 // Domain/Users/Permissions.cs
-namespace YourApp.Domain.Users;
+namespace YourNamespace.Domain.Users;
 
 /// <summary>
 /// Permission constants organized by resource.
@@ -32,7 +32,7 @@ public static class Permissions
 }
 
 // Infrastructure/Authorization/Requirements/PermissionRequirement.cs
-namespace YourApp.Infrastructure.Authorization.Requirements;
+namespace YourNamespace.Infrastructure.Authorization.Requirements;
 
 using Microsoft.AspNetCore.Authorization;
 
@@ -42,12 +42,12 @@ public sealed class PermissionRequirement(string permission) : IAuthorizationReq
 }
 
 // Infrastructure/Authorization/Handlers/PermissionHandler.cs
-namespace YourApp.Infrastructure.Authorization.Handlers;
+namespace YourNamespace.Infrastructure.Authorization.Handlers;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
-using YourApp.Application.Common.Interfaces;
-using YourApp.Infrastructure.Authorization.Requirements;
+using YourNamespace.Application.Common.Interfaces;
+using YourNamespace.Infrastructure.Authorization.Requirements;
 
 public sealed class PermissionHandler(IDbContext db)
     : AuthorizationHandler<PermissionRequirement>
@@ -80,7 +80,7 @@ public sealed class PermissionHandler(IDbContext db)
 }
 
 // Infrastructure/Authorization/HasPermissionAttribute.cs
-namespace YourApp.Infrastructure.Authorization;
+namespace YourNamespace.Infrastructure.Authorization;
 
 using Microsoft.AspNetCore.Authorization;
 
@@ -97,11 +97,11 @@ public sealed class HasPermissionAttribute : AuthorizeAttribute
 }
 
 // Infrastructure/Authorization/PermissionPolicyProvider.cs
-namespace YourApp.Infrastructure.Authorization;
+namespace YourNamespace.Infrastructure.Authorization;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
-using YourApp.Infrastructure.Authorization.Requirements;
+using YourNamespace.Infrastructure.Authorization.Requirements;
 
 /// <summary>
 /// Dynamically creates authorization policies for permission strings.

@@ -1,5 +1,5 @@
 // Domain/Common/ISoftDeletable.cs
-namespace YourApp.Domain.Common;
+namespace YourNamespace.Domain.Common;
 
 /// <summary>
 /// Contract for entities that support soft deletion.
@@ -12,7 +12,7 @@ public interface ISoftDeletable
 }
 
 // Domain/Common/SoftDeletableEntity.cs
-namespace YourApp.Domain.Common;
+namespace YourNamespace.Domain.Common;
 
 /// <summary>
 /// Base class for entities that support soft deletion with audit tracking.
@@ -51,11 +51,11 @@ public abstract class SoftDeletableEntity : AuditableEntity, ISoftDeletable
 }
 
 // Infrastructure/Data/Extensions/SoftDeleteExtensions.cs
-namespace YourApp.Infrastructure.Data.Extensions;
+namespace YourNamespace.Infrastructure.Data.Extensions;
 
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
-using YourApp.Domain.Common;
+using YourNamespace.Domain.Common;
 
 public static class SoftDeleteExtensions
 {
@@ -82,11 +82,11 @@ public static class SoftDeleteExtensions
 }
 
 // Infrastructure/Data/Configurations/SoftDeletableEntityConfiguration.cs
-namespace YourApp.Infrastructure.Data.Configurations;
+namespace YourNamespace.Infrastructure.Data.Configurations;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using YourApp.Domain.Common;
+using YourNamespace.Domain.Common;
 
 /// <summary>
 /// Base configuration for soft-deletable entities.

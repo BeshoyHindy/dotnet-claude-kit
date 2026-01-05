@@ -1,5 +1,5 @@
 ---
-name: .NET Concise
+name: dotnet-concise
 description: Minimal, focused responses for experienced .NET developers
 keep-coding-instructions: true
 ---

@@ -1,5 +1,5 @@
 // Infrastructure/Configuration/JwtSettings.cs
-namespace YourApp.Infrastructure.Configuration;
+namespace YourNamespace.Infrastructure.Configuration;
 
 public sealed class JwtSettings
 {

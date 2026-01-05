@@ -1,5 +1,5 @@
 // Infrastructure/Caching/CacheKeys.cs
-namespace YourApp.Infrastructure.Caching;
+namespace YourNamespace.Infrastructure.Caching;
 
 /// <summary>
 /// Centralized cache key management.
@@ -44,9 +44,9 @@ public static class CacheKeys
 }
 
 // Infrastructure/Caching/CacheInvalidator.cs
-namespace YourApp.Infrastructure.Caching;
+namespace YourNamespace.Infrastructure.Caching;
 
-using YourApp.Application.Common.Interfaces;
+using YourNamespace.Application.Common.Interfaces;
 
 /// <summary>
 /// Helper for invalidating related cache entries.
@@ -89,10 +89,10 @@ public sealed class CacheInvalidator(ICacheService cache)
 }
 
 // Example usage in event handler
-namespace YourApp.Application.Products.EventHandlers;
+namespace YourNamespace.Application.Products.EventHandlers;
 
-using YourApp.Domain.Products.Events;
-using YourApp.Infrastructure.Caching;
+using YourNamespace.Domain.Products.Events;
+using YourNamespace.Infrastructure.Caching;
 
 public sealed class InvalidateCacheOnProductUpdated(
     CacheInvalidator invalidator)

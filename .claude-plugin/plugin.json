@@ -1,13 +1,13 @@
 {
   "name": "dotnet-claude-kit",
-  "version": "0.2.0",
+  "version": "0.1.0",
   "description": "Claude Code plugin for .NET development. 18 production-ready skills for Clean Architecture, CQRS, authentication, authorization, caching, EF Core, domain events, validation, testing, and more.",
   "author": {
     "name": "dotnet-claude-kit contributors"
   },
   "license": "MIT",
-  "repository": "https://github.com/dotnet-claude-kit/dotnet-claude-kit",
-  "homepage": "https://github.com/dotnet-claude-kit/dotnet-claude-kit#readme",
+  "repository": "https://github.com/BeshoyHindy/dotnet-claude-kit",
+  "homepage": "https://github.com/BeshoyHindy/dotnet-claude-kit#readme",
   "skills": "./skills/",
   "agents": "./agents/",
   "commands": "./commands/",

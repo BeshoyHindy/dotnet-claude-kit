@@ -4,7 +4,7 @@ description: Senior .NET architect for Clean Architecture validation, dependency
 tools: Read, Glob, Grep
 model: opus
 permissionMode: default
-skills: clean-architecture, result-pattern, cqrs
+skills: clean-architecture, result-pattern, cqrs, domain-events
 ---
 
 # .NET Architect Agent

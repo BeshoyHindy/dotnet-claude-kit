@@ -281,15 +281,20 @@ builder.Services.AddRateLimiter(options =>
 Standard headers to inform clients:
 
 ```csharp
+// Register TimeProvider
+builder.Services.AddSingleton(TimeProvider.System);
+
+// Middleware using TimeProvider
 app.Use(async (context, next) =>
 {
     await next();
 
     // Add rate limit headers (consider doing this in a middleware)
     // These would typically come from your rate limiter state
+    var timeProvider = context.RequestServices.GetRequiredService<TimeProvider>();
     context.Response.Headers["X-RateLimit-Limit"] = "100";
     context.Response.Headers["X-RateLimit-Remaining"] = "95";
-    context.Response.Headers["X-RateLimit-Reset"] = DateTimeOffset.UtcNow
+    context.Response.Headers["X-RateLimit-Reset"] = timeProvider.GetUtcNow()
         .AddMinutes(1).ToUnixTimeSeconds().ToString();
 });
 ```
