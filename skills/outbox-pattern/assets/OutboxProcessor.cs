@@ -1,12 +1,12 @@
 // Infrastructure/BackgroundJobs/OutboxProcessor.cs
-namespace YourApp.Infrastructure.BackgroundJobs;
+namespace YourNamespace.Infrastructure.BackgroundJobs;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using YourApp.Application.Common.Interfaces;
-using YourApp.Infrastructure.Data.Outbox;
+using YourNamespace.Application.Common.Interfaces;
+using YourNamespace.Infrastructure.Data.Outbox;
 
 public sealed class OutboxProcessor(
     IServiceScopeFactory scopeFactory,
@@ -101,17 +101,18 @@ public sealed class OutboxProcessor(
 }
 
 // Infrastructure/BackgroundJobs/OutboxCleanupJob.cs
-namespace YourApp.Infrastructure.BackgroundJobs;
+namespace YourNamespace.Infrastructure.BackgroundJobs;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using YourApp.Application.Common.Interfaces;
+using YourNamespace.Application.Common.Interfaces;
 
 public sealed class OutboxCleanupJob(
     IServiceScopeFactory scopeFactory,
-    ILogger<OutboxCleanupJob> logger) : BackgroundService
+    ILogger<OutboxCleanupJob> logger,
+    TimeProvider timeProvider) : BackgroundService
 {
     private readonly TimeSpan _cleanupInterval = TimeSpan.FromHours(1);
     private readonly TimeSpan _retentionPeriod = TimeSpan.FromDays(7);
@@ -145,7 +146,7 @@ public sealed class OutboxCleanupJob(
         using var scope = scopeFactory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<IDbContext>();
 
-        var cutoff = DateTimeOffset.UtcNow - _retentionPeriod;
+        var cutoff = timeProvider.GetUtcNow() - _retentionPeriod;
 
         // Delete old processed messages
         var deletedProcessed = await db.OutboxMessages
@@ -168,7 +169,7 @@ public sealed class OutboxCleanupJob(
 }
 
 // Application/Common/Interfaces/IEventPublisher.cs
-namespace YourApp.Application.Common.Interfaces;
+namespace YourNamespace.Application.Common.Interfaces;
 
 public interface IEventPublisher
 {

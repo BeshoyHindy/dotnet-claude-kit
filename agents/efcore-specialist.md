@@ -4,7 +4,7 @@ description: Entity Framework Core specialist for entity configuration, migratio
 tools: Read, Glob, Grep, Edit
 model: sonnet
 permissionMode: default
-skills: efcore, clean-architecture
+skills: efcore, entity-auditing, soft-delete, clean-architecture
 ---
 
 # EF Core Specialist Agent

@@ -1,5 +1,5 @@
 // Api/Configuration/OpenApiConfiguration.cs
-namespace YourApp.Api.Configuration;
+namespace YourNamespace.Api.Configuration;
 
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;

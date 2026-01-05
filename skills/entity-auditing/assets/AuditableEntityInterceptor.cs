@@ -1,11 +1,11 @@
 // Infrastructure/Data/Interceptors/AuditableEntityInterceptor.cs
-namespace YourApp.Infrastructure.Data.Interceptors;
+namespace YourNamespace.Infrastructure.Data.Interceptors;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using YourApp.Application.Common.Interfaces;
-using YourApp.Domain.Common;
+using YourNamespace.Application.Common.Interfaces;
+using YourNamespace.Domain.Common;
 
 /// <summary>
 /// Automatically populates audit fields on entities implementing IAuditableEntity.

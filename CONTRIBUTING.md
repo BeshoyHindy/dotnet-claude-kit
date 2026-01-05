@@ -22,7 +22,7 @@ Thank you for your interest in contributing to dotnet-claude-kit!
    └── assets/               # Optional: Reusable code templates
        └── *.cs
    ```
-3. Use `skills/_TEMPLATE/SKILL.md` as a starting point
+3. Use `skills/_TEMPLATE.md` as a starting point
 4. Follow pattern-first design - teach the pattern, not the framework
 
 ### Adding Agents

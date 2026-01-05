@@ -1,5 +1,5 @@
 // Domain/Common/IAuditableEntity.cs
-namespace YourApp.Domain.Common;
+namespace YourNamespace.Domain.Common;
 
 /// <summary>
 /// Contract for entities that track creation and modification audit information.
@@ -22,7 +22,7 @@ public interface ICreationAuditableEntity
 }
 
 // Domain/Common/AuditableEntity.cs
-namespace YourApp.Domain.Common;
+namespace YourNamespace.Domain.Common;
 
 /// <summary>
 /// Base class for entities with full audit tracking.
@@ -46,7 +46,7 @@ public abstract class AuditableEntity : Entity, IAuditableEntity
 // }
 
 // Application/Common/Interfaces/ICurrentUserService.cs
-namespace YourApp.Application.Common.Interfaces;
+namespace YourNamespace.Application.Common.Interfaces;
 
 /// <summary>
 /// Provides access to current user information for audit purposes.
@@ -70,10 +70,10 @@ public interface ICurrentUserService
 }
 
 // Infrastructure/Services/CurrentUserService.cs
-namespace YourApp.Infrastructure.Services;
+namespace YourNamespace.Infrastructure.Services;
 
 using Microsoft.AspNetCore.Http;
-using YourApp.Application.Common.Interfaces;
+using YourNamespace.Application.Common.Interfaces;
 
 /// <summary>
 /// HTTP context-based implementation of current user service.
@@ -96,9 +96,9 @@ public sealed class CurrentUserService(
 }
 
 // Example entity using audit
-namespace YourApp.Domain.Orders;
+namespace YourNamespace.Domain.Orders;
 
-using YourApp.Domain.Common;
+using YourNamespace.Domain.Common;
 
 public sealed class Order : AuditableEntity
 {

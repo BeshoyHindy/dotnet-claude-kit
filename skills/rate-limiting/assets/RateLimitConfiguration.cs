@@ -1,5 +1,5 @@
 // Api/Configuration/RateLimitConfiguration.cs
-namespace YourApp.Api.Configuration;
+namespace YourNamespace.Api.Configuration;
 
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;

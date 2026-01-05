@@ -4,7 +4,7 @@ description: API design and code reviewer for .NET endpoints, security, and REST
 tools: Read, Glob, Grep
 model: sonnet
 permissionMode: default
-skills: clean-architecture, result-pattern, validation
+skills: api-design, authentication, authorization, clean-architecture, exception-handling, openapi, result-pattern, validation
 ---
 
 # API Reviewer Agent

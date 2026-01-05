@@ -1,5 +1,5 @@
 // Domain/Common/IDomainEvent.cs
-namespace YourApp.Domain.Common;
+namespace YourNamespace.Domain.Common;
 
 /// <summary>
 /// Marker interface for domain events.
@@ -11,19 +11,32 @@ public interface IDomainEvent
 }
 
 // Domain/Common/DomainEvent.cs
-namespace YourApp.Domain.Common;
+namespace YourNamespace.Domain.Common;
 
 /// <summary>
 /// Base record for domain events. Use records for immutability.
+/// OccurredOn is set via constructor to support TimeProvider injection.
 /// </summary>
-public abstract record DomainEvent : IDomainEvent
+public abstract record DomainEvent(DateTimeOffset OccurredOn) : IDomainEvent
 {
     public Guid EventId { get; } = Guid.NewGuid();
-    public DateTimeOffset OccurredOn { get; } = DateTimeOffset.UtcNow;
+}
+
+// Alternative: If you need a parameterless base, use a factory
+public static class DomainEventFactory
+{
+    /// <summary>
+    /// Creates domain events with TimeProvider for testability.
+    /// </summary>
+    public static TEvent Create<TEvent>(TimeProvider timeProvider, Func<DateTimeOffset, TEvent> factory)
+        where TEvent : IDomainEvent
+    {
+        return factory(timeProvider.GetUtcNow());
+    }
 }
 
 // Domain/Common/Entity.cs
-namespace YourApp.Domain.Common;
+namespace YourNamespace.Domain.Common;
 
 /// <summary>
 /// Base entity class with domain event support.
@@ -68,9 +81,9 @@ public abstract class Entity
 }
 
 // Application/Common/Interfaces/IDomainEventHandler.cs
-namespace YourApp.Application.Common.Interfaces;
+namespace YourNamespace.Application.Common.Interfaces;
 
-using YourApp.Domain.Common;
+using YourNamespace.Domain.Common;
 
 /// <summary>
 /// Handler for a specific domain event type.
@@ -80,31 +93,36 @@ public interface IDomainEventHandler<in TEvent> where TEvent : IDomainEvent
     Task HandleAsync(TEvent domainEvent, CancellationToken ct = default);
 }
 
-// Example events
-namespace YourApp.Domain.Orders.Events;
+// Example events - pass OccurredOn from TimeProvider
+namespace YourNamespace.Domain.Orders.Events;
 
-using YourApp.Domain.Common;
+using YourNamespace.Domain.Common;
 
 public sealed record OrderCreatedEvent(
     Guid OrderId,
     Guid CustomerId,
-    string OrderNumber) : DomainEvent;
+    string OrderNumber,
+    DateTimeOffset OccurredOn) : DomainEvent(OccurredOn);
 
 public sealed record OrderSubmittedEvent(
     Guid OrderId,
     decimal TotalAmount,
-    int ItemCount) : DomainEvent;
+    int ItemCount,
+    DateTimeOffset OccurredOn) : DomainEvent(OccurredOn);
 
 public sealed record OrderCancelledEvent(
     Guid OrderId,
     string Reason,
-    Guid? CancelledBy) : DomainEvent;
+    Guid? CancelledBy,
+    DateTimeOffset OccurredOn) : DomainEvent(OccurredOn);
 
 public sealed record OrderShippedEvent(
     Guid OrderId,
     string TrackingNumber,
-    string Carrier) : DomainEvent;
+    string Carrier,
+    DateTimeOffset OccurredOn) : DomainEvent(OccurredOn);
 
 public sealed record OrderDeliveredEvent(
     Guid OrderId,
-    DateTimeOffset DeliveredAt) : DomainEvent;
+    DateTimeOffset DeliveredAt,
+    DateTimeOffset OccurredOn) : DomainEvent(OccurredOn);

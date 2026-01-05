@@ -1,5 +1,5 @@
 // Application/Common/Interfaces/ICacheService.cs
-namespace YourApp.Application.Common.Interfaces;
+namespace YourNamespace.Application.Common.Interfaces;
 
 public interface ICacheService
 {
@@ -14,12 +14,12 @@ public interface ICacheService
 }
 
 // Infrastructure/Services/RedisCacheService.cs
-namespace YourApp.Infrastructure.Services;
+namespace YourNamespace.Infrastructure.Services;
 
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
-using YourApp.Application.Common.Interfaces;
+using YourNamespace.Application.Common.Interfaces;
 
 public sealed class RedisCacheService(
     IDistributedCache cache,
@@ -121,11 +121,11 @@ public sealed class RedisCacheService(
 }
 
 // Infrastructure/Services/MemoryCacheService.cs
-namespace YourApp.Infrastructure.Services;
+namespace YourNamespace.Infrastructure.Services;
 
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-using YourApp.Application.Common.Interfaces;
+using YourNamespace.Application.Common.Interfaces;
 
 /// <summary>
 /// In-memory cache implementation for single-instance deployments.

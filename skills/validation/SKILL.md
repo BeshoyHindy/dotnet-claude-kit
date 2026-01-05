@@ -6,6 +6,8 @@ allowed-tools: Read, Write, Edit, Glob, Grep
 
 # Validation Pattern
 
+**Source**: [Model Validation in ASP.NET Core](https://learn.microsoft.com/en-us/aspnet/core/mvc/models/validation) | [FluentValidation Documentation](https://docs.fluentvalidation.net/)
+
 Validate input before processing. Fail fast with meaningful errors. Separate validation from business logic.
 
 ## Validation Layers

@@ -1,10 +1,10 @@
 // Infrastructure/Data/Interceptors/SoftDeleteInterceptor.cs
-namespace YourApp.Infrastructure.Data.Interceptors;
+namespace YourNamespace.Infrastructure.Data.Interceptors;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using YourApp.Application.Common.Interfaces;
-using YourApp.Domain.Common;
+using YourNamespace.Application.Common.Interfaces;
+using YourNamespace.Domain.Common;
 
 /// <summary>
 /// Converts physical delete operations to soft deletes for ISoftDeletable entities.

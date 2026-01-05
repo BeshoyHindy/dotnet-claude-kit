@@ -6,6 +6,8 @@ allowed-tools: Read, Write, Edit, Glob, Grep
 
 # Result Pattern
 
+**Source**: [Railway Oriented Programming](https://fsharpforfunandprofit.com/rop/) | [Error Handling in Domain-Driven Design](https://www.milanjovanovic.tech/blog/functional-error-handling-in-dotnet-with-the-result-pattern)
+
 Explicit error handling using discriminated return types. Operations return `Result<T>` indicating success with value or failure with error. Exceptions reserved for truly exceptional cases.
 
 ## Why Use Result

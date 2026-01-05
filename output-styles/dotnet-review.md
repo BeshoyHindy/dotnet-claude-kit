@@ -1,5 +1,5 @@
 ---
-name: .NET Code Review
+name: dotnet-review
 description: Structured code review output for .NET projects with severity levels and actionable feedback
 keep-coding-instructions: true
 ---

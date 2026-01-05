@@ -5,11 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.0] - 2026-01-05
+## [0.1.0] - 2026-01-05
 
-### Changed - Pattern-First Redesign
+### Initial Release - Pattern-First Design
 
-Complete redesign to pattern-first, framework-agnostic approach.
+Production-ready release with pattern-first, framework-agnostic approach.
 
 - **Skills teach patterns, not frameworks** - Core concepts in SKILL.md, framework-specific implementations in references/
 - **No framework assumptions** - Works with MediatR, Wolverine, or custom implementations
@@ -99,7 +99,7 @@ Complete redesign to pattern-first, framework-agnostic approach.
 ### Agents
 
 - **dotnet-architect** (opus) - Architecture decisions
-- **wolverine-expert** (sonnet) - Wolverine CQRS specialist
+- **cqrs-specialist** (sonnet) - CQRS pattern specialist
 - **efcore-specialist** (sonnet) - EF Core optimization
 - **testing-specialist** (sonnet) - Test design
 - **api-reviewer** (sonnet) - API validation

@@ -6,6 +6,8 @@ allowed-tools: Read, Write, Edit, Glob, Grep
 
 # Entity Framework Core
 
+**Source**: [EF Core Documentation](https://learn.microsoft.com/en-us/ef/core/)
+
 EF Core is the ORM for .NET. Keep domain entities clean by using Fluent API for configuration. No data annotations in domain.
 
 ## Entity Configuration

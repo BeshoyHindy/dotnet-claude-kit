@@ -164,9 +164,10 @@ public sealed class RefreshToken : Entity
     public DateTimeOffset? RevokedAt { get; private set; }
     public string? ReplacedByToken { get; private set; }
 
-    public bool IsExpired => DateTimeOffset.UtcNow >= ExpiresAt;
+    // Methods take current time for testability (no static DateTime calls)
+    public bool IsExpired(DateTimeOffset now) => now >= ExpiresAt;
     public bool IsRevoked => RevokedAt is not null;
-    public bool IsActive => !IsRevoked && !IsExpired;
+    public bool IsActive(DateTimeOffset now) => !IsRevoked && !IsExpired(now);
 
     private RefreshToken() { }
 
@@ -186,9 +187,9 @@ public sealed class RefreshToken : Entity
         };
     }
 
-    public void Revoke(string? replacementToken = null)
+    public void Revoke(DateTimeOffset revokedAt, string? replacementToken = null)
     {
-        RevokedAt = DateTimeOffset.UtcNow;
+        RevokedAt = revokedAt;
         ReplacedByToken = replacementToken;
     }
 }
@@ -275,7 +276,8 @@ public sealed class RefreshTokenHandler(
                 rt.UserId == userId,
                 ct);
 
-        if (refreshToken is null || !refreshToken.IsActive)
+        var now = timeProvider.GetUtcNow();
+        if (refreshToken is null || !refreshToken.IsActive(now))
             return Error.Unauthorized("Invalid refresh token");
 
         // Get user with roles
@@ -288,13 +290,13 @@ public sealed class RefreshTokenHandler(
         var newTokenResponse = tokenService.GenerateTokens(user, roles);
 
         // Rotate refresh token
-        refreshToken.Revoke(newTokenResponse.RefreshToken);
+        refreshToken.Revoke(now, newTokenResponse.RefreshToken);
 
         var newRefreshToken = RefreshToken.Create(
             user.Id,
             newTokenResponse.RefreshToken,
-            timeProvider.GetUtcNow().AddDays(jwtSettings.Value.RefreshTokenExpirationDays),
-            timeProvider.GetUtcNow());
+            now.AddDays(jwtSettings.Value.RefreshTokenExpirationDays),
+            now);
 
         db.RefreshTokens.Add(newRefreshToken);
         await db.SaveChangesAsync(ct);
@@ -349,9 +351,11 @@ public class AuthController(
     [Authorize]
     public async Task<IActionResult> Logout(
         [FromServices] IDbContext db,
+        [FromServices] TimeProvider timeProvider,
         CancellationToken ct)
     {
         var userId = Guid.Parse(User.FindFirst("sub")!.Value);
+        var now = timeProvider.GetUtcNow();
 
         // Revoke all user's refresh tokens
         var tokens = await db.RefreshTokens
@@ -359,7 +363,7 @@ public class AuthController(
             .ToListAsync(ct);
 
         foreach (var token in tokens)
-            token.Revoke();
+            token.Revoke(now);
 
         await db.SaveChangesAsync(ct);
 

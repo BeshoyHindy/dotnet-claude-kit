@@ -8,6 +8,8 @@ allowed-tools: Read, Write, Edit, Glob, Grep
 
 One-line summary of the pattern or concept.
 
+**Source**: [Link to authoritative reference](https://example.com)
+
 ## When to Use
 
 - Scenario 1

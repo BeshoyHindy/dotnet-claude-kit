@@ -1,5 +1,5 @@
 // Infrastructure/Services/TokenService.cs
-namespace YourApp.Infrastructure.Services;
+namespace YourNamespace.Infrastructure.Services;
 
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -7,10 +7,10 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using YourApp.Application.Common.Interfaces;
-using YourApp.Application.Common.Models;
-using YourApp.Domain.Users;
-using YourApp.Infrastructure.Configuration;
+using YourNamespace.Application.Common.Interfaces;
+using YourNamespace.Application.Common.Models;
+using YourNamespace.Domain.Users;
+using YourNamespace.Infrastructure.Configuration;
 
 public sealed class TokenService(
     IOptions<JwtSettings> jwtSettings,
@@ -107,11 +107,11 @@ public sealed class TokenService(
 }
 
 // Application/Common/Interfaces/ITokenService.cs
-namespace YourApp.Application.Common.Interfaces;
+namespace YourNamespace.Application.Common.Interfaces;
 
 using System.Security.Claims;
-using YourApp.Application.Common.Models;
-using YourApp.Domain.Users;
+using YourNamespace.Application.Common.Models;
+using YourNamespace.Domain.Users;
 
 public interface ITokenService
 {
@@ -121,7 +121,7 @@ public interface ITokenService
 }
 
 // Application/Common/Models/TokenResponse.cs
-namespace YourApp.Application.Common.Models;
+namespace YourNamespace.Application.Common.Models;
 
 public sealed record TokenResponse(
     string AccessToken,

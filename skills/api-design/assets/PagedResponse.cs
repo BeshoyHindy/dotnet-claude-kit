@@ -1,5 +1,5 @@
 // Application/Common/Pagination/PagedRequest.cs
-namespace YourApp.Application.Common.Pagination;
+namespace YourNamespace.Application.Common.Pagination;
 
 public record PagedRequest(int Page = 1, int PageSize = 10)
 {
@@ -10,7 +10,7 @@ public record PagedRequest(int Page = 1, int PageSize = 10)
 }
 
 // Application/Common/Pagination/PagedResponse.cs
-namespace YourApp.Application.Common.Pagination;
+namespace YourNamespace.Application.Common.Pagination;
 
 public sealed record PagedResponse<T>
 {
@@ -31,7 +31,7 @@ public sealed record PageMeta
 }
 
 // Application/Common/Pagination/CursorRequest.cs
-namespace YourApp.Application.Common.Pagination;
+namespace YourNamespace.Application.Common.Pagination;
 
 public record CursorRequest(string? Cursor = null, int Limit = 10)
 {
@@ -41,7 +41,7 @@ public record CursorRequest(string? Cursor = null, int Limit = 10)
 }
 
 // Application/Common/Pagination/CursorResponse.cs
-namespace YourApp.Application.Common.Pagination;
+namespace YourNamespace.Application.Common.Pagination;
 
 public sealed record CursorResponse<T>
 {
@@ -51,7 +51,7 @@ public sealed record CursorResponse<T>
 }
 
 // Application/Common/Pagination/CursorHelper.cs
-namespace YourApp.Application.Common.Pagination;
+namespace YourNamespace.Application.Common.Pagination;
 
 using System.Text;
 
