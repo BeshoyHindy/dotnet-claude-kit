@@ -58,7 +58,11 @@ Add to your `.claude/settings.json`:
 }
 ```
 
-Then install plugins using `/plugin install` command.
+Then run Claude Code and install:
+
+```bash
+/plugin install dotnet-claude-kit@dotnet-tools
+```
 
 That's it! The plugin is now active. Use skills, agents, and commands in your prompts.
 
