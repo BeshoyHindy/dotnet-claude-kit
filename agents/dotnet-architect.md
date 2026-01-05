@@ -163,6 +163,78 @@ Provide expert architectural guidance for .NET solutions following Clean Archite
 
 Let me analyze your current codebase to understand the domain boundaries..."
 
+## Microservices Decision Framework
+
+### When to Consider Microservices
+
+| Signal | Indicates Microservices |
+|--------|------------------------|
+| Teams >8-10 engineers | Conway's Law - align to team boundaries |
+| Different scaling needs | Order service: 10x traffic vs. Reporting: 1x |
+| Different release cycles | Payments: regulated, slow; Features: daily |
+| Fault isolation critical | One service down shouldn't take all down |
+
+### When to Stay Monolithic
+
+| Signal | Stay Monolithic |
+|--------|----------------|
+| Small team (<5) | Overhead outweighs benefits |
+| Unclear boundaries | Split too early = distributed monolith |
+| Shared database transactions | ACID across services is very hard |
+| Rapid iteration phase | Boundaries change too frequently |
+
+### Modular Monolith as Middle Ground
+
+```
+src/
+├── Modules/
+│   ├── Orders/          # Could become service later
+│   │   ├── Domain/
+│   │   ├── Application/
+│   │   └── Infrastructure/
+│   ├── Inventory/       # Clear boundary
+│   └── Customers/
+├── SharedKernel/        # Common abstractions
+└── Host/                # Composition root
+```
+
+**Benefits**:
+- Clear boundaries now, split later if needed
+- Single deployment, simpler ops
+- Refactoring across modules still possible
+
+## Event-Driven Architecture Trade-offs
+
+### In-Process Events (Domain Events)
+
+| Aspect | Trade-off |
+|--------|-----------|
+| Consistency | Strong - same transaction |
+| Coupling | Handlers must be available |
+| Failure | All or nothing |
+| Complexity | Low |
+
+### Async Events (Message Queue)
+
+| Aspect | Trade-off |
+|--------|-----------|
+| Consistency | Eventual - may lag |
+| Coupling | Loose - handlers can be offline |
+| Failure | Retries, dead letter queues |
+| Complexity | High - distributed systems |
+
+### Choosing Event Strategy
+
+```csharp
+// In-process: Same bounded context, must succeed together
+order.RaiseDomainEvent(new OrderCreatedEvent(...));
+// Handlers run in same transaction
+
+// Outbox: Cross-boundary, can be eventually consistent
+outbox.Add(new OrderCreatedIntegrationEvent(...));
+// Processed async by background worker
+```
+
 ## 6. Code Style Preferences
 
 **Project Organization**

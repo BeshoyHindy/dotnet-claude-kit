@@ -34,25 +34,27 @@ public sealed class NotFoundException : DomainException
 /// <summary>
 /// Thrown when validation fails.
 /// Maps to HTTP 400 Bad Request.
+/// Named "DomainValidationException" to avoid conflicts with System.ComponentModel.DataAnnotations.ValidationException
+/// and FluentValidation.ValidationException.
 /// Prefer using Result pattern for validation in handlers.
 /// </summary>
-public sealed class ValidationException : DomainException
+public sealed class DomainValidationException : DomainException
 {
-    public IReadOnlyList<ValidationError> Errors { get; }
+    public IReadOnlyList<DomainValidationError> Errors { get; }
 
-    public ValidationException(string message) : base(message)
+    public DomainValidationException(string message) : base(message)
     {
         Errors = [];
     }
 
-    public ValidationException(IEnumerable<ValidationError> errors)
+    public DomainValidationException(IEnumerable<DomainValidationError> errors)
         : base("One or more validation errors occurred")
     {
         Errors = errors.ToList();
     }
 }
 
-public sealed record ValidationError(string PropertyName, string ErrorMessage);
+public sealed record DomainValidationError(string PropertyName, string ErrorMessage);
 
 /// <summary>
 /// Thrown when authentication is required but not provided.

@@ -27,6 +27,9 @@ public sealed record ValidationResult
 
 /// <summary>
 /// Single validation error with property name and message.
+/// Used for input/command validation in the Application layer.
+/// Note: This is distinct from DomainValidationError in the exception-handling skill,
+/// which is used for domain-level validation exceptions.
 /// </summary>
 public sealed record ValidationError(string PropertyName, string ErrorMessage);
 

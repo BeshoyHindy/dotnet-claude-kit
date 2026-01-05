@@ -8,7 +8,6 @@ Claude Code extensibility toolkit for production-ready .NET development.
 
 You are in the **plugin development context**. Focus on:
 - Maintaining skill quality and consistency
-- Following the templates exactly
 - Using `YourNamespace.{Layer}.{Feature}` for all code examples
 - Never adding framework-specific content to SKILL.md (put it in references/)
 
@@ -181,16 +180,6 @@ throw new OrderNotFoundException(); // BAD - use Result pattern
 - IOptions<T> for configuration
 - Clean Architecture layers (Domain → Application → Infrastructure → API)
 - Primary constructors for DI (C# 12+)
-
-## Templates
-
-| Template | Purpose |
-|----------|---------|
-| `skills/_TEMPLATE.md` | Creating new skills |
-| `agents/_TEMPLATE.md` | Creating new agents |
-| `commands/_TEMPLATE.md` | Creating new commands |
-| `output-styles/_TEMPLATE.md` | Creating output styles |
-| `hooks/_TEMPLATE.json` | Creating event hooks |
 
 ## Quality Checklist
 

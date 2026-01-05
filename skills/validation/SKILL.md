@@ -74,21 +74,28 @@ public sealed class ValidationDecorator<TCommand, TResponse>(
         TCommand command,
         CancellationToken ct)
     {
+        var allErrors = new List<ValidationError>();
+
         foreach (var validator in validators)
         {
             var result = await validator.ValidateAsync(command, ct);
             if (!result.IsValid)
             {
-                var message = string.Join("; ",
-                    result.Errors.Select(e => $"{e.PropertyName}: {e.ErrorMessage}"));
-                return Error.Validation(message);
+                allErrors.AddRange(result.Errors);
             }
+        }
+
+        if (allErrors.Count > 0)
+        {
+            return Error.ValidationErrors(allErrors);
         }
 
         return await inner.HandleAsync(command, ct);
     }
 }
 ```
+
+> **Note**: This uses `Error.ValidationErrors()` which accepts structured errors. See the result-pattern skill for the extended `Error` type.
 
 ## With FluentValidation
 
@@ -103,7 +110,10 @@ See [references/with-fluentvalidation.md](references/with-fluentvalidation.md) f
 ```csharp
 if (result.IsFailure && result.Error.Type == ErrorType.Validation)
 {
-    ModelState.AddModelError("", result.Error.Message);
+    foreach (var error in result.Error.ValidationErrors)
+    {
+        ModelState.AddModelError(error.PropertyName, error.ErrorMessage);
+    }
     return ValidationProblem(ModelState);
 }
 ```
@@ -114,18 +124,44 @@ if (result.IsFailure && result.Error.Type == ErrorType.Validation)
 if (result.IsFailure && result.Error.Type == ErrorType.Validation)
 {
     return Results.ValidationProblem(
-        ParseErrors(result.Error.Message));
+        result.Error.ValidationErrors
+            .GroupBy(e => e.PropertyName)
+            .ToDictionary(
+                g => g.Key,
+                g => g.Select(e => e.ErrorMessage).ToArray()));
+}
+```
+
+### Extension Method (Recommended)
+
+Create a reusable extension for clean mapping:
+
+```csharp
+public static class ResultExtensions
+{
+    public static IResult ToHttpResult<T>(this Result<T> result, Func<T, IResult> onSuccess)
+    {
+        if (result.IsSuccess)
+            return onSuccess(result.Value);
+
+        return result.Error.Type switch
+        {
+            ErrorType.Validation => Results.ValidationProblem(
+                result.Error.ValidationErrors
+                    .GroupBy(e => e.PropertyName)
+                    .ToDictionary(g => g.Key, g => g.Select(e => e.ErrorMessage).ToArray())),
+            ErrorType.NotFound => Results.NotFound(result.Error.Message),
+            ErrorType.Unauthorized => Results.Unauthorized(),
+            ErrorType.Forbidden => Results.Forbid(),
+            ErrorType.Conflict => Results.Conflict(result.Error.Message),
+            _ => Results.Problem(result.Error.Message)
+        };
+    }
 }
 
-IDictionary<string, string[]> ParseErrors(string message)
-{
-    return message
-        .Split("; ")
-        .Select(e => e.Split(": ", 2))
-        .Where(parts => parts.Length == 2)
-        .GroupBy(p => p[0])
-        .ToDictionary(g => g.Key, g => g.Select(p => p[1]).ToArray());
-}
+// Usage - clean one-liner
+app.MapPost("/orders", async (CreateOrderCommand cmd, ICommandHandler<CreateOrderCommand, Guid> handler, CancellationToken ct) =>
+    (await handler.HandleAsync(cmd, ct)).ToHttpResult(id => Results.Created($"/orders/{id}", id)));
 ```
 
 ## Where Validation Lives

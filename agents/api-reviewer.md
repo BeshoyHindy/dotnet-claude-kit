@@ -274,6 +274,53 @@ public static class OrderEndpoints
 - [ ] Proper CORS configuration
 - [ ] HTTPS enforced
 
+## Rate Limiting Patterns
+
+Check for proper rate limiting on sensitive endpoints:
+
+```csharp
+// Program.cs
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter("auth", config =>
+    {
+        config.PermitLimit = 5;
+        config.Window = TimeSpan.FromMinutes(1);
+    });
+});
+
+// Endpoint usage
+group.MapPost("/login", Login)
+    .RequireRateLimiting("auth");  // ✅ Protected
+```
+
+**Review Triggers**:
+- Login/logout endpoints without rate limiting
+- Password reset endpoints unprotected
+- API keys or tokens in URLs
+
+## CORS Configuration Review
+
+```csharp
+// REVIEW: Overly permissive CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+        policy.AllowAnyOrigin()     // ❌ Too permissive
+              .AllowAnyMethod()
+              .AllowAnyHeader());
+});
+
+// BETTER: Specific origins
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("Production", policy =>
+        policy.WithOrigins("https://app.example.com")
+              .WithMethods("GET", "POST", "PUT", "DELETE")
+              .WithHeaders("Content-Type", "Authorization"));
+});
+```
+
 ## Guiding Principle
 
 "APIs are contracts. Break them thoughtfully, secure them always, and document them clearly."

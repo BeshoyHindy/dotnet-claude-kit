@@ -10,6 +10,20 @@ Best practices for logging in .NET applications using ILogger and structured log
 
 **Source**: [.NET Logging](https://learn.microsoft.com/en-us/dotnet/core/extensions/logging)
 
+## Table of Contents
+
+- [ILogger Basics](#ilogger-basics)
+- [Structured Logging](#structured-logging)
+- [High-Performance Logging](#high-performance-logging)
+- [Correlation and Scopes](#correlation-and-scopes)
+- [Serilog Integration](#serilog-integration)
+- [Sensitive Data](#sensitive-data)
+- [Exception Logging](#exception-logging)
+- [Endpoint Integration](#endpoint-integration)
+- [Best Practices](#best-practices)
+- [Assets](#assets)
+- [Related](#related)
+
 ## ILogger Basics
 
 ### Injection

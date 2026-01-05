@@ -1,3 +1,5 @@
+// Copy to: src/Application/Common/Pagination/*.cs (multiple files)
+// Requires: None (pure C#)
 // Application/Common/Pagination/PagedRequest.cs
 namespace YourNamespace.Application.Common.Pagination;
 
@@ -55,18 +57,81 @@ namespace YourNamespace.Application.Common.Pagination;
 
 using System.Text;
 
+/// <summary>
+/// Helper methods for encoding and decoding cursor-based pagination tokens.
+/// </summary>
 public static class CursorHelper
 {
     public static string Encode(DateTimeOffset value) =>
         Convert.ToBase64String(Encoding.UTF8.GetBytes(value.ToString("O")));
 
-    public static DateTimeOffset Decode(string cursor) =>
-        DateTimeOffset.Parse(
-            Encoding.UTF8.GetString(Convert.FromBase64String(cursor)));
-
     public static string Encode(Guid value) =>
         Convert.ToBase64String(value.ToByteArray());
 
+    /// <summary>
+    /// Attempts to decode a cursor string to a DateTimeOffset.
+    /// </summary>
+    /// <returns>True if decoding succeeded; false if cursor was invalid.</returns>
+    public static bool TryDecode(string? cursor, out DateTimeOffset value)
+    {
+        value = default;
+
+        if (string.IsNullOrWhiteSpace(cursor))
+            return false;
+
+        try
+        {
+            var bytes = Convert.FromBase64String(cursor);
+            var dateString = Encoding.UTF8.GetString(bytes);
+            return DateTimeOffset.TryParse(dateString, out value);
+        }
+        catch (FormatException)
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Attempts to decode a cursor string to a Guid.
+    /// </summary>
+    /// <returns>True if decoding succeeded; false if cursor was invalid.</returns>
+    public static bool TryDecodeGuid(string? cursor, out Guid value)
+    {
+        value = default;
+
+        if (string.IsNullOrWhiteSpace(cursor))
+            return false;
+
+        try
+        {
+            var bytes = Convert.FromBase64String(cursor);
+            if (bytes.Length != 16)
+                return false;
+
+            value = new Guid(bytes);
+            return true;
+        }
+        catch (FormatException)
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Decodes a cursor to DateTimeOffset. Throws if invalid.
+    /// Prefer TryDecode for user input.
+    /// </summary>
+    public static DateTimeOffset Decode(string cursor) =>
+        TryDecode(cursor, out var value)
+            ? value
+            : throw new ArgumentException("Invalid cursor format", nameof(cursor));
+
+    /// <summary>
+    /// Decodes a cursor to Guid. Throws if invalid.
+    /// Prefer TryDecodeGuid for user input.
+    /// </summary>
     public static Guid DecodeGuid(string cursor) =>
-        new(Convert.FromBase64String(cursor));
+        TryDecodeGuid(cursor, out var value)
+            ? value
+            : throw new ArgumentException("Invalid cursor format", nameof(cursor));
 }

@@ -231,6 +231,67 @@ Application/
 | Validation not running | Decorator not registered | Add validation decorator |
 | Wrong response type | Interface mismatch | Check ICommand<T> type |
 
+## When NOT to Use CQRS
+
+CQRS adds complexity. Skip it when:
+
+| Scenario | Better Alternative |
+|----------|-------------------|
+| Simple CRUD app | Direct service layer |
+| Single developer project | Keep it simple until needed |
+| Prototype/MVP | Add CQRS when patterns emerge |
+| Read and write models identical | No benefit from separation |
+
+**Signs you DO need CQRS**:
+- Different teams own reads vs writes
+- Complex read queries with multiple aggregations
+- Event sourcing requirements
+- Significant performance differences between read/write
+
+## Performance Considerations
+
+### High-Throughput Commands
+
+```csharp
+// For batch operations, consider bulk command
+public sealed record ImportOrdersCommand(
+    IReadOnlyList<OrderImportItem> Orders) : ICommand<BatchResult>;
+
+public sealed class ImportOrdersHandler(IDbContext db)
+    : ICommandHandler<ImportOrdersCommand, BatchResult>
+{
+    public async Task<Result<BatchResult>> HandleAsync(
+        ImportOrdersCommand cmd, CancellationToken ct)
+    {
+        // Process in batches to avoid memory pressure
+        const int batchSize = 100;
+        var processed = 0;
+        var errors = new List<string>();
+
+        foreach (var batch in cmd.Orders.Chunk(batchSize))
+        {
+            // Bulk insert instead of one-by-one
+            db.Orders.AddRange(batch.Select(CreateOrder));
+            await db.SaveChangesAsync(ct);
+            processed += batch.Length;
+        }
+
+        return new BatchResult(processed, errors);
+    }
+}
+```
+
+### Query Optimization
+
+```csharp
+// For complex read models, consider dedicated read database
+public sealed class GetDashboardHandler(IReadOnlyDbContext readDb)
+    : IQueryHandler<GetDashboardQuery, DashboardResponse>
+{
+    // Read from replica, not primary
+}
+```
+
 ## Guiding Principle
 
 "Handlers are thin orchestrators. Business logic belongs in the domain."

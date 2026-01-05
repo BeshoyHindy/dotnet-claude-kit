@@ -1,0 +1,107 @@
+name: Validate Plugin
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate JSON files
+        run: |
+          echo "Validating JSON files..."
+          for file in $(find . -name "*.json" -not -path "./.git/*"); do
+            echo "Checking $file"
+            python3 -m json.tool "$file" > /dev/null || exit 1
+          done
+          echo "All JSON files are valid"
+
+      - name: Validate plugin.json structure
+        run: |
+          echo "Validating plugin.json..."
+          if [ ! -f ".claude-plugin/plugin.json" ]; then
+            echo "Error: .claude-plugin/plugin.json not found"
+            exit 1
+          fi
+          # Check required fields
+          python3 -c "
+          import json
+          with open('.claude-plugin/plugin.json') as f:
+              data = json.load(f)
+              required = ['name', 'version', 'description']
+              for field in required:
+                  if field not in data:
+                      print(f'Missing required field: {field}')
+                      exit(1)
+          print('plugin.json is valid')
+          "
+
+      - name: Check for broken internal links
+        run: |
+          echo "Checking for broken asset references..."
+          errors=0
+          for skill_dir in skills/*/; do
+            if [ -f "${skill_dir}SKILL.md" ]; then
+              # Check for asset references
+              grep -oP '\[assets/[^\]]+\]' "${skill_dir}SKILL.md" | while read -r ref; do
+                asset_path=$(echo "$ref" | tr -d '[]')
+                full_path="${skill_dir}${asset_path}"
+                if [ ! -f "$full_path" ]; then
+                  echo "Broken reference in ${skill_dir}SKILL.md: $asset_path"
+                  errors=$((errors + 1))
+                fi
+              done
+            fi
+          done
+          if [ $errors -gt 0 ]; then
+            exit 1
+          fi
+          echo "All asset references are valid"
+
+      - name: Lint Markdown files
+        uses: DavidAnson/markdownlint-cli2-action@v16
+        with:
+          globs: |
+            **/*.md
+            !**/node_modules/**
+        continue-on-error: true
+
+      - name: Check skill structure
+        run: |
+          echo "Checking skill structure..."
+          for skill_dir in skills/*/; do
+            skill_name=$(basename "$skill_dir")
+            if [ ! -f "${skill_dir}SKILL.md" ]; then
+              echo "Warning: ${skill_name} missing SKILL.md"
+            else
+              # Check for frontmatter
+              if ! head -1 "${skill_dir}SKILL.md" | grep -q "^---"; then
+                echo "Warning: ${skill_name}/SKILL.md missing frontmatter"
+              fi
+            fi
+          done
+          echo "Skill structure check complete"
+
+      - name: Verify C# code syntax
+        run: |
+          echo "Checking C# file syntax..."
+          # Basic syntax check - just ensure files are valid UTF-8
+          for file in $(find . -name "*.cs" -not -path "./.git/*"); do
+            if ! file "$file" | grep -q "UTF-8\|ASCII"; then
+              echo "Warning: $file may have encoding issues"
+            fi
+          done
+          echo "C# syntax check complete"
+
+      - name: Summary
+        run: |
+          echo "## Validation Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- Skills: $(ls -d skills/*/ 2>/dev/null | wc -l)" >> $GITHUB_STEP_SUMMARY
+          echo "- Agents: $(ls agents/*.md 2>/dev/null | wc -l)" >> $GITHUB_STEP_SUMMARY
+          echo "- Commands: $(ls commands/*.md 2>/dev/null | wc -l)" >> $GITHUB_STEP_SUMMARY
+          echo "- Output Styles: $(ls output-styles/*.md 2>/dev/null | wc -l)" >> $GITHUB_STEP_SUMMARY

@@ -21,109 +21,117 @@ public abstract class Builder<T, TBuilder> where TBuilder : Builder<T, TBuilder>
 }
 
 // ============================================================================
-// EXAMPLE BUILDERS - Adapt to your domain types
+// EXAMPLE: Generic Entity Builder
+// This example shows the pattern - adapt to your actual domain types
 // ============================================================================
 
-/*
 /// <summary>
-/// Example Order builder for testing.
-/// Demonstrates the builder pattern for creating test data.
+/// Example builder demonstrating the pattern with a simple Product entity.
+/// Copy and adapt this for your domain entities.
 /// </summary>
-public sealed class OrderBuilder : Builder<Order, OrderBuilder>
+public sealed class ProductBuilder : Builder<Product, ProductBuilder>
 {
     private Guid _id = Guid.NewGuid();
-    private Guid _customerId = Guid.NewGuid();
-    private string _orderNumber = $"ORD-{Guid.NewGuid():N}"[..14];
-    private OrderStatus _status = OrderStatus.Draft;
-    private readonly List<OrderItem> _items = [];
+    private string _name = "Test Product";
+    private string _sku = $"SKU-{Guid.NewGuid():N}"[..12];
+    private decimal _price = 99.99m;
+    private int _stock = 100;
+    private bool _isActive = true;
 
-    public OrderBuilder WithId(Guid id)
+    public ProductBuilder WithId(Guid id)
     {
         _id = id;
         return This;
     }
 
-    public OrderBuilder WithCustomer(Guid customerId)
-    {
-        _customerId = customerId;
-        return This;
-    }
-
-    public OrderBuilder WithOrderNumber(string orderNumber)
-    {
-        _orderNumber = orderNumber;
-        return This;
-    }
-
-    public OrderBuilder WithStatus(OrderStatus status)
-    {
-        _status = status;
-        return This;
-    }
-
-    public OrderBuilder WithItem(Guid productId, int quantity, decimal unitPrice)
-    {
-        _items.Add(new OrderItem(productId, quantity, unitPrice));
-        return This;
-    }
-
-    public override Order Build()
-    {
-        // Create order using domain factory
-        var order = Order.Create(_customerId, _orderNumber).Value;
-
-        foreach (var item in _items)
-        {
-            order.AddItem(item.ProductId, item.Quantity, item.UnitPrice);
-        }
-
-        // Set status if different from Draft (may need reflection for testing)
-        if (_status != OrderStatus.Draft)
-        {
-            SetStatus(order, _status);
-        }
-
-        return order;
-    }
-
-    private static void SetStatus(Order order, OrderStatus status)
-    {
-        // Use reflection for testing purposes only
-        var prop = typeof(Order).GetProperty(nameof(Order.Status));
-        prop?.SetValue(order, status);
-    }
-}
-
-/// <summary>
-/// Example Customer builder for testing.
-/// </summary>
-public sealed class CustomerBuilder : Builder<Customer, CustomerBuilder>
-{
-    private Guid _id = Guid.NewGuid();
-    private string _name = "Test Customer";
-    private string _email = $"test-{Guid.NewGuid():N}@example.com"[..30];
-
-    public CustomerBuilder WithId(Guid id)
-    {
-        _id = id;
-        return This;
-    }
-
-    public CustomerBuilder WithName(string name)
+    public ProductBuilder WithName(string name)
     {
         _name = name;
         return This;
     }
 
-    public CustomerBuilder WithEmail(string email)
+    public ProductBuilder WithSku(string sku)
     {
-        _email = email;
+        _sku = sku;
         return This;
     }
 
-    public override Customer Build()
+    public ProductBuilder WithPrice(decimal price)
     {
-        return new Customer(_id, _name, _email);
+        _price = price;
+        return This;
     }
+
+    public ProductBuilder WithStock(int stock)
+    {
+        _stock = stock;
+        return This;
+    }
+
+    public ProductBuilder Inactive()
+    {
+        _isActive = false;
+        return This;
+    }
+
+    public override Product Build()
+    {
+        return new Product
+        {
+            Id = _id,
+            Name = _name,
+            Sku = _sku,
+            Price = _price,
+            Stock = _stock,
+            IsActive = _isActive
+        };
+    }
+}
+
+/// <summary>
+/// Simple Product class for the example builder.
+/// Replace with your actual domain entity.
+/// </summary>
+public class Product
+{
+    public Guid Id { get; init; }
+    public string Name { get; init; } = string.Empty;
+    public string Sku { get; init; } = string.Empty;
+    public decimal Price { get; init; }
+    public int Stock { get; init; }
+    public bool IsActive { get; init; }
+}
+
+// ============================================================================
+// USAGE EXAMPLES
+// ============================================================================
+
+/*
+// Basic usage - creates product with all defaults
+var product = new ProductBuilder().Build();
+
+// Fluent customization
+var expensiveProduct = new ProductBuilder()
+    .WithName("Premium Widget")
+    .WithPrice(999.99m)
+    .Build();
+
+// Implicit conversion
+Product inactiveProduct = new ProductBuilder().Inactive();
+
+// In test methods
+[Fact]
+public void Order_CannotAddInactiveProduct()
+{
+    // Arrange
+    var product = new ProductBuilder().Inactive().Build();
+    var order = new OrderBuilder().Build();
+
+    // Act
+    var result = order.AddProduct(product);
+
+    // Assert
+    result.IsFailure.Should().BeTrue();
+    result.Error.Message.Should().Contain("inactive");
 }
 */

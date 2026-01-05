@@ -1,3 +1,5 @@
+// Copy to: src/Infrastructure/Caching/CacheKeys.cs
+// Requires: ICacheService from CacheService.cs
 // Infrastructure/Caching/CacheKeys.cs
 namespace YourNamespace.Infrastructure.Caching;
 

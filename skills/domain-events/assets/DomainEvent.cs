@@ -1,3 +1,5 @@
+// Copy to: src/Domain/Common/*.cs (IDomainEvent.cs, DomainEvent.cs, Entity.cs)
+// Requires: None (pure C#)
 // Domain/Common/IDomainEvent.cs
 namespace YourNamespace.Domain.Common;
 

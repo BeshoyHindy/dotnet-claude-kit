@@ -10,6 +10,21 @@ JWT-based authentication patterns for .NET APIs.
 
 **Source**: [ASP.NET Core Authentication](https://learn.microsoft.com/en-us/aspnet/core/security/authentication/)
 
+## Table of Contents
+
+- [Setup](#setup)
+- [Configuration](#configuration)
+- [Token Service](#token-service)
+- [Refresh Token Entity](#refresh-token-entity)
+- [Login Handler](#login-handler)
+- [Refresh Token Handler](#refresh-token-handler)
+- [Endpoint Examples](#endpoint-examples)
+- [Protecting Endpoints](#protecting-endpoints)
+- [Best Practices](#best-practices)
+- [Security Considerations](#security-considerations)
+- [Assets](#assets)
+- [Related](#related)
+
 ## Setup
 
 ```bash

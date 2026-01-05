@@ -10,6 +10,23 @@ Patterns for caching in .NET applications.
 
 **Source**: [Caching in .NET](https://learn.microsoft.com/en-us/aspnet/core/performance/caching/overview)
 
+## Table of Contents
+
+- [In-Memory Cache](#in-memory-cache)
+- [Distributed Cache (Redis)](#distributed-cache-redis)
+- [Hybrid Cache (.NET 9+)](#hybrid-cache-net-9)
+- [Cache Service Abstraction](#cache-service-abstraction)
+- [Cache Keys](#cache-keys)
+- [Cache Invalidation](#cache-invalidation)
+- [Response Caching](#response-caching)
+- [Output Caching (.NET 7+)](#output-caching-net-7)
+- [Cache Stampede Prevention](#cache-stampede-prevention)
+- [Best Practices](#best-practices)
+- [When to Cache](#when-to-cache)
+- [Cache Patterns](#cache-patterns)
+- [Assets](#assets)
+- [Related](#related)
+
 ## In-Memory Cache
 
 For single-instance applications:

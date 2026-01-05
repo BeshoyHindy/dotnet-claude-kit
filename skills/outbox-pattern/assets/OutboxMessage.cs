@@ -38,10 +38,35 @@ public sealed class OutboxMessage
         RetryCount++;
     }
 
+    /// <summary>
+    /// Deserializes the outbox message content to its original type.
+    /// </summary>
+    /// <remarks>
+    /// SECURITY: This method uses Type.GetType() with assembly-qualified names stored in the database.
+    /// A type whitelist is enabled by default for security. To customize allowed types, modify
+    /// the IsAllowedEventType method to match your domain event namespace.
+    /// </remarks>
     public object? Deserialize()
     {
         var type = System.Type.GetType(Type);
-        return type is null ? null : JsonSerializer.Deserialize(Content, type, JsonSerializerOptions);
+
+        // Security: Type whitelist validation is enabled by default
+        if (type is null || !IsAllowedEventType(type))
+            return null;
+
+        return JsonSerializer.Deserialize(Content, type, JsonSerializerOptions);
+    }
+
+    /// <summary>
+    /// Validates that the type is an allowed domain event type.
+    /// Customize this method to match your application's event namespace.
+    /// </summary>
+    private static bool IsAllowedEventType(Type type)
+    {
+        // Only allow types that implement IDomainEvent from your domain assembly
+        // Customize the namespace check to match your application
+        return type.IsAssignableTo(typeof(IDomainEvent)) &&
+               type.Namespace?.StartsWith("YourNamespace.Domain", StringComparison.Ordinal) == true;
     }
 
     private static readonly JsonSerializerOptions JsonSerializerOptions = new()
@@ -135,19 +160,12 @@ public sealed class OutboxInterceptor(TimeProvider timeProvider) : SaveChangesIn
             .Select(e => e.Entity)
             .ToList();
 
-        // Convert domain events to outbox messages
+        // Convert domain events to outbox messages using the factory method
         foreach (var entity in entitiesWithEvents)
         {
             foreach (var domainEvent in entity.PopDomainEvents())
             {
-                var outboxMessage = new OutboxMessage
-                {
-                    Id = Guid.NewGuid(),
-                    Type = domainEvent.GetType().AssemblyQualifiedName!,
-                    Content = JsonSerializer.Serialize(domainEvent, domainEvent.GetType()),
-                    CreatedAt = now
-                };
-
+                var outboxMessage = OutboxMessage.Create(domainEvent, now);
                 context.Set<OutboxMessage>().Add(outboxMessage);
             }
         }

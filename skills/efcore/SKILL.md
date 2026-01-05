@@ -130,6 +130,55 @@ var orders = await db.Orders
     .ToListAsync(ct);
 ```
 
+### Compiled Queries
+
+For high-frequency queries, compile once to avoid query tree overhead:
+
+```csharp
+// Define as static readonly
+private static readonly Func<AppDbContext, Guid, CancellationToken, Task<Order?>> GetOrderByIdQuery =
+    EF.CompileAsyncQuery((AppDbContext db, Guid id, CancellationToken ct) =>
+        db.Orders
+            .Include(o => o.Items)
+            .FirstOrDefault(o => o.Id == id));
+
+// Usage
+var order = await GetOrderByIdQuery(_db, orderId, ct);
+```
+
+**When to use compiled queries:**
+- Hot paths called frequently (hundreds+ per second)
+- Simple queries without dynamic filters
+- Measurable performance improvement needed
+
+## Bulk Operations
+
+EF Core 7+ supports efficient bulk updates and deletes without loading entities:
+
+```csharp
+// Bulk update - single SQL statement, no tracking
+var updated = await db.Orders
+    .Where(o => o.Status == OrderStatus.Pending)
+    .Where(o => o.CreatedAt < cutoffDate)
+    .ExecuteUpdateAsync(s => s
+        .SetProperty(o => o.Status, OrderStatus.Expired)
+        .SetProperty(o => o.ModifiedAt, timeProvider.GetUtcNow()),
+        ct);
+
+// Bulk delete - single SQL statement
+var deleted = await db.OutboxMessages
+    .Where(m => m.ProcessedAt != null)
+    .Where(m => m.ProcessedAt < retentionCutoff)
+    .ExecuteDeleteAsync(ct);
+
+logger.LogInformation("Deleted {Count} old outbox messages", deleted);
+```
+
+**Bulk operation caveats:**
+- Bypasses change tracker (no events, no interceptors)
+- No cascade delete unless configured in database
+- Returns count, not entities
+
 ## Global Query Filters
 
 For multi-tenancy or soft delete:
@@ -189,6 +238,52 @@ services.AddDbContext<AppDbContext>((sp, options) =>
     options.UseSqlServer(connectionString);  // Or UseNpgsql, UseSqlite
     options.AddInterceptors(sp.GetRequiredService<AuditInterceptor>());
 });
+
+## Connection Resiliency
+
+Configure retry policies for transient failures:
+
+```csharp
+// SQL Server with retry
+services.AddDbContext<AppDbContext>(options =>
+{
+    options.UseSqlServer(connectionString, sqlOptions =>
+    {
+        sqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(30),
+            errorNumbersToAdd: null);  // Retry on all transient errors
+    });
+});
+
+// PostgreSQL with retry
+services.AddDbContext<AppDbContext>(options =>
+{
+    options.UseNpgsql(connectionString, npgsqlOptions =>
+    {
+        npgsqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(30),
+            errorCodesToAdd: null);
+    });
+});
+```
+
+**Important**: When using retry, wrap multi-statement operations in explicit transactions:
+
+```csharp
+await using var transaction = await db.Database.BeginTransactionAsync(ct);
+try
+{
+    // Multiple operations...
+    await db.SaveChangesAsync(ct);
+    await transaction.CommitAsync(ct);
+}
+catch
+{
+    await transaction.RollbackAsync(ct);
+    throw;
+}
 ```
 
 ## Migrations

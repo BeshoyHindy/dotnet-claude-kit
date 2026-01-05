@@ -336,6 +336,114 @@ public sealed class PublishOrderSubmittedIntegration(
 | Ordering | Don't rely on handler execution order |
 | Failures | Consider retry/dead letter for failed handlers |
 
+## Event Versioning
+
+Events evolve over time. Handle schema changes gracefully:
+
+```csharp
+// Version in event name (preferred for breaking changes)
+public sealed record OrderCreatedEventV2(
+    Guid OrderId,
+    Guid CustomerId,
+    string OrderNumber,
+    decimal TotalAmount,  // New field in V2
+    DateTimeOffset OccurredOn) : DomainEvent(OccurredOn);
+
+// Or version property for minor additions
+public sealed record OrderCreatedEvent(
+    Guid OrderId,
+    Guid CustomerId,
+    string OrderNumber,
+    DateTimeOffset OccurredOn,
+    int Version = 1) : DomainEvent(OccurredOn)
+{
+    // New optional fields with defaults for backward compatibility
+    public decimal? TotalAmount { get; init; }
+}
+
+// Handler supports multiple versions
+public sealed class OrderCreatedEventHandler :
+    IDomainEventHandler<OrderCreatedEvent>,
+    IDomainEventHandler<OrderCreatedEventV2>
+{
+    public Task HandleAsync(OrderCreatedEvent e, CancellationToken ct) =>
+        ProcessOrderCreated(e.OrderId, e.CustomerId, null, ct);
+
+    public Task HandleAsync(OrderCreatedEventV2 e, CancellationToken ct) =>
+        ProcessOrderCreated(e.OrderId, e.CustomerId, e.TotalAmount, ct);
+
+    private Task ProcessOrderCreated(Guid orderId, Guid customerId, decimal? total, CancellationToken ct)
+    {
+        // Common processing logic
+    }
+}
+```
+
+## Performance Considerations
+
+### High-Throughput Scenarios
+
+For high-volume event processing, optimize the dispatcher:
+
+```csharp
+// Cached dispatcher - avoids reflection on every call
+public sealed class CachedDomainEventDispatcher(IServiceProvider serviceProvider)
+    : IDomainEventDispatcher
+{
+    // Cache handler types and methods
+    private static readonly ConcurrentDictionary<Type, (Type HandlerType, MethodInfo Method)> _cache = new();
+
+    public async Task DispatchAsync(IEnumerable<IDomainEvent> domainEvents, CancellationToken ct = default)
+    {
+        foreach (var domainEvent in domainEvents)
+        {
+            var eventType = domainEvent.GetType();
+            var (handlerType, method) = _cache.GetOrAdd(eventType, GetHandlerInfo);
+
+            var handlers = serviceProvider.GetServices(handlerType);
+            foreach (var handler in handlers)
+            {
+                await ((Task)method.Invoke(handler, [domainEvent, ct])!).ConfigureAwait(false);
+            }
+        }
+    }
+
+    private static (Type HandlerType, MethodInfo Method) GetHandlerInfo(Type eventType)
+    {
+        var handlerType = typeof(IDomainEventHandler<>).MakeGenericType(eventType);
+        var method = handlerType.GetMethod("HandleAsync")!;
+        return (handlerType, method);
+    }
+}
+```
+
+### Parallel Handler Execution
+
+When handlers are independent, run them in parallel:
+
+```csharp
+public async Task DispatchAsync(IEnumerable<IDomainEvent> domainEvents, CancellationToken ct = default)
+{
+    foreach (var domainEvent in domainEvents)
+    {
+        var handlers = GetHandlers(domainEvent.GetType());
+
+        // Run independent handlers in parallel
+        await Task.WhenAll(handlers.Select(h => InvokeHandler(h, domainEvent, ct)));
+    }
+}
+```
+
+### Source Generators (Advanced)
+
+For zero-reflection dispatching, consider source generators:
+
+```csharp
+// With a source generator, you can generate typed dispatch code at compile time
+// This eliminates all runtime reflection overhead
+// Libraries like MediatR and Wolverine use this approach
+```
+
 ## Assets
 
 - [assets/DomainEvent.cs](assets/DomainEvent.cs) - Base event types

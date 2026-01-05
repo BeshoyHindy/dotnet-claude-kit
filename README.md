@@ -19,14 +19,11 @@ AI coding assistants are powerful, but they often produce .NET code that:
 
 ```
 Before: "Create an order handler"
-→ Generic handler with try-catch and exceptions
+→ Generic handler with try-catch
 
 After (with dotnet-claude-kit):
-→ CQRS command handler returning Result<T>
-→ FluentValidation validator
-→ Proper file organization following Clean Architecture
-→ TimeProvider for testability
-→ Domain events for side effects
+→ CQRS handler returning Result<T>
+→ Validator, tests, proper file organization
 ```
 
 ## Installation
@@ -57,31 +54,19 @@ That's it! The plugin is now active. Use skills, agents, and commands in your pr
 
 ## Usage
 
-### Skills
-
-Skills are loaded automatically. Reference patterns in prompts:
-
+**Skills** load automatically. Reference them in prompts:
 ```
 "Implement CreateOrder using the cqrs and result-pattern skills"
-"Add authentication following the authentication skill"
 ```
 
-### Agents
-
-Invoke specialists for specific domains:
-
+**Agents** provide specialized expertise:
 ```
 "@dotnet-architect review this solution's architecture"
-"@efcore-specialist optimize this query"
 ```
 
-### Commands
-
-Run workflows:
-
+**Commands** run workflows:
 ```bash
 /dotnet-feature CreateOrder Order    # Scaffold vertical slice
-/dotnet-test ./tests --coverage      # Run tests
 /dotnet-validate                     # Check architecture rules
 ```
 
@@ -120,13 +105,11 @@ skills/{name}/
 | `testing-specialist` | sonnet | Test design, mocking strategies |
 | `api-reviewer` | sonnet | Endpoint security, REST conventions |
 
-### 4 Commands
+### 2 Commands
 
 | Command | Purpose |
 |---------|---------|
 | `/dotnet-feature` | Scaffold complete vertical slice |
-| `/dotnet-test` | Run tests with coverage report |
-| `/dotnet-migrate` | Manage EF Core migrations |
 | `/dotnet-validate` | Validate architecture rules |
 
 ### 3 Output Styles
@@ -139,23 +122,67 @@ skills/{name}/
 
 ## Design Principles
 
-1. **Pattern-First** - Skills teach patterns, not frameworks. Works with MediatR, Wolverine, or custom implementations
+1. **Pattern-First** - Skills teach patterns, not frameworks
 2. **Progressive Disclosure** - Core concepts in SKILL.md, framework details in references/
 3. **No Assumptions** - You choose your frameworks and libraries
-4. **Research-Based** - Patterns from Microsoft docs, proven community practices
-5. **Testable Code** - TimeProvider, interfaces, Result pattern throughout
+
+## Skill Combinations
+
+Skills work together for common scenarios:
+
+```mermaid
+graph TD
+    subgraph "Vertical Slice Feature"
+        CQRS[cqrs] --> VP[validation]
+        VP --> RP[result-pattern]
+    end
+
+    subgraph "Secure API"
+        AUTH[authentication] --> AUTHZ[authorization]
+        AUTHZ --> API[api-design]
+    end
+
+    subgraph "Reliable Events"
+        DE[domain-events] --> OP[outbox-pattern]
+    end
+
+    subgraph "Audited Entities"
+        EF[efcore] --> EA[entity-auditing]
+        EA --> SD[soft-delete]
+    end
+
+    subgraph "Observable API"
+        LOG[logging] --> EH[exception-handling]
+        EH --> OA[openapi]
+    end
+
+    CQRS -.->|"handlers use"| EF
+    AUTH -.->|"protect"| CQRS
+    RP -.->|"used by"| EH
+```
+
+| Pattern | Skills | Use Case |
+|---------|--------|----------|
+| **Vertical Slice** | cqrs + validation + result-pattern | Complete feature implementation |
+| **Secure Endpoint** | authentication + authorization + api-design | Protected API endpoints |
+| **Reliable Events** | domain-events + outbox-pattern | Events that survive crashes |
+| **Audited Entity** | efcore + entity-auditing + soft-delete | Full audit trail |
+| **Observable API** | logging + exception-handling + openapi | Production monitoring |
 
 ## Project Structure
 
 ```
 dotnet-claude-kit/
+├── .claude-plugin/   # Plugin manifest and marketplace config
 ├── skills/           # 18 pattern-first skills
+│   └── {skill}/
+│       ├── SKILL.md      # Core pattern (always loaded)
+│       ├── references/   # Framework-specific guides
+│       └── assets/       # Copy-paste code templates
 ├── agents/           # 5 specialized agents
-├── commands/         # 4 workflow commands
+├── commands/         # 2 workflow commands
 ├── output-styles/    # 3 response formats
-├── hooks/            # Event automation
-├── scripts/          # Shell utilities
-└── docs/             # Documentation
+└── examples/         # Configuration examples
 ```
 
 ## Sources
@@ -173,4 +200,4 @@ Built on authoritative references:
 
 ---
 
-[Documentation](docs/) | [Changelog](CHANGELOG.md) | [Contributing](CONTRIBUTING.md)
+[Changelog](CHANGELOG.md) | [Contributing](CONTRIBUTING.md) | [Code of Conduct](CODE_OF_CONDUCT.md) | [Security](SECURITY.md)

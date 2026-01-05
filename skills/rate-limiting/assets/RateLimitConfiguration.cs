@@ -1,8 +1,31 @@
+// Copy to: src/Api/Configuration/RateLimitConfiguration.cs
+// Requires: .NET 7+ built-in rate limiting (Microsoft.AspNetCore.RateLimiting)
 // Api/Configuration/RateLimitConfiguration.cs
 namespace YourNamespace.Api.Configuration;
 
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
+
+/// <summary>
+/// Policy name constants for rate limiting.
+/// Use these constants when applying rate limiting to endpoints.
+/// </summary>
+public static class RateLimitPolicies
+{
+    /// <summary>General API limit (100 requests/minute per IP)</summary>
+    public const string Api = "api";
+
+    /// <summary>Strict limit for sensitive operations (5 requests/15 minutes)</summary>
+    public const string Strict = "strict";
+
+    /// <summary>Per-user limit for authenticated endpoints (1000 tokens with 100/minute replenishment)</summary>
+    public const string PerUser = "per-user";
+
+    /// <summary>High-volume endpoints like search/list (500 tokens with 50/10 seconds replenishment)</summary>
+    public const string HighVolume = "high-volume";
+}
 
 public static class RateLimitConfiguration
 {
@@ -16,16 +39,16 @@ public static class RateLimitConfiguration
             options.OnRejected = HandleRejectedRequest;
 
             // General API limit per IP
-            options.AddPolicy("api", CreateApiPolicy());
+            options.AddPolicy(RateLimitPolicies.Api, CreateApiPolicy());
 
             // Strict limit for sensitive operations (login, registration)
-            options.AddPolicy("strict", CreateStrictPolicy());
+            options.AddPolicy(RateLimitPolicies.Strict, CreateStrictPolicy());
 
             // Per-user limit for authenticated endpoints
-            options.AddPolicy("per-user", CreatePerUserPolicy());
+            options.AddPolicy(RateLimitPolicies.PerUser, CreatePerUserPolicy());
 
             // High-volume endpoints (search, list)
-            options.AddPolicy("high-volume", CreateHighVolumePolicy());
+            options.AddPolicy(RateLimitPolicies.HighVolume, CreateHighVolumePolicy());
         });
 
         return services;
@@ -129,7 +152,7 @@ public static class RateLimitConfiguration
             Status = StatusCodes.Status429TooManyRequests,
             Title = "Too Many Requests",
             Detail = "Rate limit exceeded. Please try again later.",
-            Type = "https://httpstatuses.com/429",
+            Type = "https://tools.ietf.org/html/rfc6585#section-4",
             Instance = context.HttpContext.Request.Path
         };
 
@@ -151,8 +174,13 @@ public static class RateLimitConfiguration
 // app.UseRateLimiter();
 //
 // Controller usage:
-// [EnableRateLimiting("api")]
+// [EnableRateLimiting(RateLimitPolicies.Api)]
 // public class OrdersController : ControllerBase { }
 //
+// [EnableRateLimiting(RateLimitPolicies.Strict)]
+// [HttpPost("login")]
+// public Task<IActionResult> Login() { }
+//
 // Minimal API usage:
-// app.MapGet("/orders", GetOrders).RequireRateLimiting("api");
+// app.MapGet("/orders", GetOrders).RequireRateLimiting(RateLimitPolicies.Api);
+// app.MapPost("/auth/login", Login).RequireRateLimiting(RateLimitPolicies.Strict);

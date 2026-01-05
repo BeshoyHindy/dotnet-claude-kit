@@ -330,14 +330,152 @@ builder.Services.AddDbContext<AppDbContext>((sp, options) =>
 });
 ```
 
+## Idempotency Keys
+
+Handlers must be idempotent - they may receive the same event multiple times. Use idempotency keys:
+
+```csharp
+// Infrastructure/Data/IdempotencyRecord.cs
+public sealed class IdempotencyRecord
+{
+    public string Key { get; private set; } = string.Empty;
+    public DateTimeOffset ProcessedAt { get; private set; }
+
+    private IdempotencyRecord() { }
+
+    public static IdempotencyRecord Create(string key, DateTimeOffset processedAt) =>
+        new() { Key = key, ProcessedAt = processedAt };
+}
+
+// Handler with idempotency check
+public sealed class OrderCreatedEventHandler(
+    IDbContext db,
+    TimeProvider timeProvider,
+    ILogger<OrderCreatedEventHandler> logger)
+{
+    public async Task HandleAsync(OrderCreatedEvent @event, CancellationToken ct)
+    {
+        var key = $"OrderCreated:{@event.OrderId}";
+
+        // Check if already processed
+        var exists = await db.IdempotencyRecords
+            .AnyAsync(r => r.Key == key, ct);
+
+        if (exists)
+        {
+            logger.LogDebug("Event {Key} already processed, skipping", key);
+            return;
+        }
+
+        // Process the event...
+        await ProcessOrderCreatedAsync(@event, ct);
+
+        // Mark as processed
+        db.IdempotencyRecords.Add(
+            IdempotencyRecord.Create(key, timeProvider.GetUtcNow()));
+        await db.SaveChangesAsync(ct);
+    }
+}
+```
+
+## Monitoring & Observability
+
+Track outbox health with metrics and alerts:
+
+```csharp
+// Infrastructure/BackgroundJobs/OutboxProcessor.cs
+public sealed class OutboxProcessor(
+    IServiceScopeFactory scopeFactory,
+    TimeProvider timeProvider,
+    IMeterFactory meterFactory,
+    ILogger<OutboxProcessor> logger) : BackgroundService
+{
+    private readonly Counter<long> _messagesProcessed;
+    private readonly Counter<long> _messagesFailed;
+    private readonly Histogram<double> _processingDuration;
+
+    public OutboxProcessor(...)
+    {
+        var meter = meterFactory.Create("Outbox");
+        _messagesProcessed = meter.CreateCounter<long>("outbox.messages.processed");
+        _messagesFailed = meter.CreateCounter<long>("outbox.messages.failed");
+        _processingDuration = meter.CreateHistogram<double>("outbox.processing.duration.ms");
+    }
+
+    private async Task ProcessMessageAsync(OutboxMessage message, IEventPublisher publisher, CancellationToken ct)
+    {
+        var sw = Stopwatch.StartNew();
+        try
+        {
+            var @event = message.Deserialize();
+            if (@event is not null)
+            {
+                await publisher.PublishAsync(@event, ct);
+                message.MarkAsProcessed(timeProvider.GetUtcNow());
+                _messagesProcessed.Add(1, new("event_type", message.Type));
+            }
+        }
+        catch (Exception ex)
+        {
+            message.MarkAsFailed(ex.Message);
+            _messagesFailed.Add(1, new("event_type", message.Type));
+            throw;
+        }
+        finally
+        {
+            _processingDuration.Record(sw.ElapsedMilliseconds);
+        }
+    }
+}
+```
+
+### Health Check
+
+```csharp
+// Infrastructure/HealthChecks/OutboxHealthCheck.cs
+public sealed class OutboxHealthCheck(IDbContext db) : IHealthCheck
+{
+    private const int MaxPendingThreshold = 1000;
+    private const int MaxAgeMinutes = 30;
+
+    public async Task<HealthCheckResult> CheckHealthAsync(
+        HealthCheckContext context,
+        CancellationToken ct)
+    {
+        var pendingCount = await db.OutboxMessages
+            .CountAsync(m => m.ProcessedAt == null, ct);
+
+        var oldestPending = await db.OutboxMessages
+            .Where(m => m.ProcessedAt == null)
+            .OrderBy(m => m.CreatedAt)
+            .Select(m => m.CreatedAt)
+            .FirstOrDefaultAsync(ct);
+
+        var data = new Dictionary<string, object>
+        {
+            ["pending_count"] = pendingCount,
+            ["oldest_pending"] = oldestPending
+        };
+
+        if (pendingCount > MaxPendingThreshold)
+            return HealthCheckResult.Degraded($"High pending count: {pendingCount}", data: data);
+
+        if (oldestPending < DateTimeOffset.UtcNow.AddMinutes(-MaxAgeMinutes))
+            return HealthCheckResult.Unhealthy($"Message stuck since {oldestPending}", data: data);
+
+        return HealthCheckResult.Healthy("Outbox is healthy", data);
+    }
+}
+```
+
 ## Best Practices
 
 | Practice | Recommendation |
 |----------|----------------|
-| Idempotency | Make event handlers idempotent (handle duplicates) |
+| Idempotency | Use idempotency keys to handle duplicates |
 | Ordering | Process messages in order if needed |
 | Retries | Limit retries, move to dead letter after max |
-| Monitoring | Alert on failed messages |
+| Monitoring | Alert on failed messages and queue depth |
 | Cleanup | Regularly purge processed messages |
 | Batching | Process messages in batches for efficiency |
 

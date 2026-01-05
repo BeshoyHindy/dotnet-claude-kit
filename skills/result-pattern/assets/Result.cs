@@ -72,15 +72,42 @@ public readonly struct Result
 }
 
 /// <summary>
-/// Represents an error with code, message, and type.
+/// Represents an error with code, message, type, and optional structured validation errors.
 /// </summary>
-public sealed record Error(string Code, string Message, ErrorType Type)
+public sealed record Error
 {
+    public string Code { get; }
+    public string Message { get; }
+    public ErrorType Type { get; }
+
+    /// <summary>
+    /// Structured validation errors for field-level validation failures.
+    /// Empty for non-validation errors.
+    /// </summary>
+    public IReadOnlyList<ValidationError> ValidationErrors { get; }
+
+    private Error(string code, string message, ErrorType type, IReadOnlyList<ValidationError>? validationErrors = null)
+    {
+        Code = code;
+        Message = message;
+        Type = type;
+        ValidationErrors = validationErrors ?? [];
+    }
+
+    // Simple validation error (single message)
     public static Error Validation(string message) =>
         new("VALIDATION_ERROR", message, ErrorType.Validation);
 
     public static Error Validation(string field, string message) =>
-        new("VALIDATION_ERROR", $"{field}: {message}", ErrorType.Validation);
+        new("VALIDATION_ERROR", message, ErrorType.Validation, [new ValidationError(field, message)]);
+
+    // Structured validation errors (multiple fields)
+    public static Error ValidationErrors(IEnumerable<ValidationError> errors)
+    {
+        var errorList = errors.ToList();
+        var message = string.Join(", ", errorList.Select(e => $"{e.PropertyName}: {e.ErrorMessage}"));
+        return new("VALIDATION_ERROR", message, ErrorType.Validation, errorList);
+    }
 
     public static Error NotFound(string resource, object id) =>
         new("NOT_FOUND", $"{resource} with ID '{id}' was not found", ErrorType.NotFound);
@@ -96,7 +123,15 @@ public sealed record Error(string Code, string Message, ErrorType Type)
 
     public static Error Internal(string message) =>
         new("INTERNAL_ERROR", message, ErrorType.Internal);
+
+    public static Error Unexpected(string message) =>
+        new("UNEXPECTED_ERROR", message, ErrorType.Internal);
 }
+
+/// <summary>
+/// Represents a single validation error for a specific property.
+/// </summary>
+public sealed record ValidationError(string PropertyName, string ErrorMessage);
 
 public enum ErrorType
 {

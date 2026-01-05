@@ -266,6 +266,64 @@ public sealed class EntityConfiguration : IEntityTypeConfiguration<Entity>
 - [ ] Split queries for large includes
 - [ ] Proper batch sizes for bulk operations
 
+## Migration Best Practices
+
+### Safe Production Migrations
+
+```csharp
+// Always verify migrations before applying
+dotnet ef migrations add AddCustomerEmail --dry-run
+
+// Generate script for review
+dotnet ef migrations script PreviousMigration NewMigration --idempotent
+```
+
+**Deployment Order**:
+1. Deploy new code that handles both old and new schema
+2. Run migration
+3. Remove backward compatibility code
+
+### Risky Operations
+
+| Operation | Risk | Mitigation |
+|-----------|------|------------|
+| Drop column | Data loss | Add `[Obsolete]`, wait, then remove |
+| Rename column | Downtime | Add new, migrate data, drop old |
+| Add NOT NULL | Failures on existing nulls | Add nullable, backfill, then alter |
+| Add unique index | Constraint violation | Clean duplicates first |
+
+```csharp
+// Safe NOT NULL addition
+migrationBuilder.AddColumn<string>(
+    name: "email",
+    table: "customers",
+    nullable: true);  // Step 1: Add nullable
+
+// Later migration after data backfill
+migrationBuilder.AlterColumn<string>(
+    name: "email",
+    table: "customers",
+    nullable: false,
+    defaultValue: "unknown@example.com");  // Step 2: Make required
+```
+
+## Connection Resiliency
+
+```csharp
+services.AddDbContext<AppDbContext>(options =>
+{
+    options.UseSqlServer(connectionString, sqlOptions =>
+    {
+        sqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(30),
+            errorNumbersToAdd: null);
+    });
+});
+```
+
+**Transaction Consideration**: Retry only works for single-operation saves. For multi-statement transactions, wrap in explicit transaction with retry logic at the outer level.
+
 ## Guiding Principle
 
 "The database is an implementation detail. Domain entities should be unaware of their persistence mechanism."

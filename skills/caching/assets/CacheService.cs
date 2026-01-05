@@ -1,3 +1,7 @@
+// Copy to: src/Application/Common/Interfaces/ICacheService.cs
+//          src/Infrastructure/Services/RedisCacheService.cs
+//          src/Infrastructure/Services/MemoryCacheService.cs
+// Requires: Microsoft.Extensions.Caching.Memory or Microsoft.Extensions.Caching.StackExchangeRedis
 // Application/Common/Interfaces/ICacheService.cs
 namespace YourNamespace.Application.Common.Interfaces;
 
@@ -6,9 +10,14 @@ public interface ICacheService
     Task<T?> GetAsync<T>(string key, CancellationToken ct = default);
     Task SetAsync<T>(string key, T value, TimeSpan? expiration = null, CancellationToken ct = default);
     Task RemoveAsync(string key, CancellationToken ct = default);
-    Task<T> GetOrCreateAsync<T>(
+
+    /// <summary>
+    /// Gets a value from cache or creates it using the factory.
+    /// Returns null/default if factory returns null.
+    /// </summary>
+    Task<T?> GetOrCreateAsync<T>(
         string key,
-        Func<CancellationToken, Task<T>> factory,
+        Func<CancellationToken, Task<T?>> factory,
         TimeSpan? expiration = null,
         CancellationToken ct = default);
 }
@@ -99,9 +108,9 @@ public sealed class RedisCacheService(
         }
     }
 
-    public async Task<T> GetOrCreateAsync<T>(
+    public async Task<T?> GetOrCreateAsync<T>(
         string key,
-        Func<CancellationToken, Task<T>> factory,
+        Func<CancellationToken, Task<T?>> factory,
         TimeSpan? expiration = null,
         CancellationToken ct = default)
     {
@@ -178,9 +187,9 @@ public sealed class MemoryCacheService(
         return Task.CompletedTask;
     }
 
-    public async Task<T> GetOrCreateAsync<T>(
+    public async Task<T?> GetOrCreateAsync<T>(
         string key,
-        Func<CancellationToken, Task<T>> factory,
+        Func<CancellationToken, Task<T?>> factory,
         TimeSpan? expiration = null,
         CancellationToken ct = default)
     {

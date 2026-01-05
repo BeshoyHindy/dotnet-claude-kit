@@ -95,7 +95,7 @@ public sealed class MinimumAgeRequirement(int minimumAge) : IAuthorizationRequir
 }
 
 // Infrastructure/Authorization/Handlers/MinimumAgeHandler.cs
-public sealed class MinimumAgeHandler
+public sealed class MinimumAgeHandler(TimeProvider timeProvider)
     : AuthorizationHandler<MinimumAgeRequirement>
 {
     protected override Task HandleRequirementAsync(
@@ -109,7 +109,7 @@ public sealed class MinimumAgeHandler
         if (!DateOnly.TryParse(birthDateClaim.Value, out var birthDate))
             return Task.CompletedTask;
 
-        var today = DateOnly.FromDateTime(DateTime.Today);
+        var today = DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime);
         var age = today.Year - birthDate.Year;
         if (birthDate > today.AddYears(-age)) age--;
 

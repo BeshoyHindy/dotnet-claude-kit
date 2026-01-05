@@ -79,13 +79,31 @@ Contains:
 - Validators
 - Interface definitions (ports)
 
+### DbSet vs Repository Trade-off
+
+Choose the approach that fits your team and project:
+
+| Approach | Pros | Cons |
+|----------|------|------|
+| **DbSet<T> in interface** | Less abstraction, simpler, full LINQ | EF Core dependency in Application |
+| **Repository interfaces** | Pure domain, swappable persistence | More code, potential leaky abstractions |
+
 ```csharp
+// Option 1: DbSet approach (pragmatic, common in real projects)
 // Application/Common/Interfaces/IDbContext.cs
-// Note: Using DbSet<T> is a pragmatic trade-off. For stricter isolation, use repository interfaces.
 public interface IDbContext
 {
     DbSet<Order> Orders { get; }
     Task<int> SaveChangesAsync(CancellationToken ct);
+}
+
+// Option 2: Repository approach (stricter isolation)
+// Application/Common/Interfaces/IOrderRepository.cs
+public interface IOrderRepository
+{
+    Task<Order?> GetByIdAsync(Guid id, CancellationToken ct);
+    Task AddAsync(Order order, CancellationToken ct);
+    Task SaveChangesAsync(CancellationToken ct);
 }
 
 // Application/Orders/Commands/CreateOrderHandler.cs
@@ -144,6 +162,54 @@ src/
 ├── Infrastructure/      # References: Application
 └── Api/                 # References: Application, Infrastructure
 ```
+
+## Folder Organization: Feature vs Technical
+
+### Feature Folders (Recommended)
+
+Group by business capability. Related files stay together:
+
+```
+Application/
+├── Orders/
+│   ├── Commands/
+│   │   ├── CreateOrder.cs          # Command + Handler in same file
+│   │   └── CancelOrder.cs
+│   ├── Queries/
+│   │   └── GetOrder.cs
+│   └── OrderResponse.cs
+├── Customers/
+│   ├── Commands/
+│   │   └── RegisterCustomer.cs
+│   └── Queries/
+│       └── GetCustomer.cs
+└── Common/
+    ├── CQRS/
+    └── Interfaces/
+```
+
+### Technical Folders (Avoid for large projects)
+
+Grouped by type - harder to navigate as project grows:
+
+```
+Application/
+├── Commands/
+│   ├── CreateOrderCommand.cs
+│   ├── CancelOrderCommand.cs
+│   └── RegisterCustomerCommand.cs   # Mixed domains
+├── Handlers/
+│   ├── CreateOrderHandler.cs
+│   └── RegisterCustomerHandler.cs
+└── Queries/
+```
+
+### When to Use Each
+
+| Approach | Use When |
+|----------|----------|
+| **Feature folders** | Most projects, multiple developers, evolving domain |
+| **Technical folders** | Small projects, single developer, few features |
 
 ## Project References
 

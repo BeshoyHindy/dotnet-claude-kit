@@ -38,8 +38,16 @@ public sealed class TokenService(
         return Convert.ToBase64String(randomBytes);
     }
 
+    /// <summary>
+    /// Validates a JWT token and returns the claims principal.
+    /// Returns null if the token is invalid, tampered with, or uses an unexpected algorithm.
+    /// Used during token refresh - expired tokens are allowed.
+    /// </summary>
     public ClaimsPrincipal? ValidateToken(string token)
     {
+        if (string.IsNullOrWhiteSpace(token))
+            return null;
+
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.UTF8.GetBytes(_settings.Key);
 
@@ -56,7 +64,7 @@ public sealed class TokenService(
                 ValidateLifetime = false // Allow expired tokens for refresh flow
             }, out var validatedToken);
 
-            // Ensure the algorithm is what we expect
+            // Ensure the algorithm is what we expect (prevent algorithm substitution attacks)
             if (validatedToken is not JwtSecurityToken jwtToken ||
                 !jwtToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.OrdinalIgnoreCase))
             {
@@ -65,8 +73,14 @@ public sealed class TokenService(
 
             return principal;
         }
-        catch
+        catch (SecurityTokenException)
         {
+            // Token validation failed (invalid signature, issuer, audience, etc.)
+            return null;
+        }
+        catch (ArgumentException)
+        {
+            // Malformed token
             return null;
         }
     }

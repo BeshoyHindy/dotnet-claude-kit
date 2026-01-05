@@ -22,13 +22,13 @@ Thank you for your interest in contributing to dotnet-claude-kit!
    └── assets/               # Optional: Reusable code templates
        └── *.cs
    ```
-3. Use `skills/_TEMPLATE.md` as a starting point
+3. Copy an existing skill as reference
 4. Follow pattern-first design - teach the pattern, not the framework
 
 ### Adding Agents
 
 1. Create `agents/{agent-name}.md`
-2. Use `agents/_TEMPLATE.md` as a starting point
+2. Copy an existing agent as reference
 3. Include:
    - Clear purpose and capabilities
    - When to invoke this agent
@@ -38,7 +38,7 @@ Thank you for your interest in contributing to dotnet-claude-kit!
 ### Adding Commands
 
 1. Create `commands/{command-name}.md`
-2. Use `commands/_TEMPLATE.md` as a starting point
+2. Copy an existing command as reference
 3. Include `name:` field in frontmatter
 4. Document arguments and expected output
 

@@ -55,9 +55,7 @@ Production-ready release with pattern-first, framework-agnostic approach.
 - Both Controllers and Minimal APIs examples in endpoint code
 - TimeProvider usage throughout (instead of DateTime.Now)
 - Primary constructor patterns (C# 12+)
-- Output styles: `dotnet-concise`, `dotnet-teaching` (3 total)
-- Scripts: `validate-architecture.sh`, `check-conventions.sh`
-- Working hooks.json with C# file modification detection
+- Output styles: `dotnet-concise`, `dotnet-teaching`, `dotnet-review`
 
 ### Fixed
 

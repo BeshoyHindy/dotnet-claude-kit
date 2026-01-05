@@ -1,3 +1,5 @@
+// Copy to: src/Infrastructure/Events/DomainEventDispatcher.cs
+// Requires: Microsoft.EntityFrameworkCore, DomainEvent.cs
 // Application/Common/Interfaces/IDomainEventDispatcher.cs
 namespace YourNamespace.Application.Common.Interfaces;
 
@@ -106,19 +108,9 @@ public sealed class DomainEventInterceptor(
         return result;
     }
 
-    public override int SavedChanges(
-        SaveChangesCompletedEventData eventData,
-        int result)
-    {
-        if (eventData.Context is not null)
-        {
-            DispatchDomainEventsAsync(eventData.Context, CancellationToken.None)
-                .GetAwaiter()
-                .GetResult();
-        }
-
-        return result;
-    }
+    // NOTE: Synchronous SavedChanges is intentionally not overridden.
+    // Using .GetAwaiter().GetResult() causes deadlocks in ASP.NET Core.
+    // Always use SaveChangesAsync() when domain events need dispatching.
 
     private async Task DispatchDomainEventsAsync(DbContext context, CancellationToken ct)
     {

@@ -247,6 +247,80 @@ public sealed class SubjectTests
 | Infrastructure | Integration | DbContext queries, configurations |
 | API | Integration | Endpoint behavior, serialization |
 
+## Testcontainers for Production-Like Testing
+
+```csharp
+// Install: Testcontainers.PostgreSql
+public class DatabaseFixture : IAsyncLifetime
+{
+    private PostgreSqlContainer _postgres = null!;
+
+    public string ConnectionString => _postgres.GetConnectionString();
+
+    public async Task InitializeAsync()
+    {
+        _postgres = new PostgreSqlBuilder()
+            .WithImage("postgres:16-alpine")
+            .Build();
+        await _postgres.StartAsync();
+    }
+
+    public async Task DisposeAsync() => await _postgres.DisposeAsync();
+}
+
+[Collection("Database")]
+public class OrderRepositoryTests(DatabaseFixture fixture)
+{
+    [Fact]
+    public async Task Query_WithJsonColumn_WorksCorrectly()
+    {
+        // Real PostgreSQL behavior - catches provider-specific bugs
+    }
+}
+```
+
+## Test Parallelization Strategy
+
+```csharp
+// xunit.runner.json
+{
+  "parallelizeAssembly": true,
+  "parallelizeTestCollections": true,
+  "maxParallelThreads": -1  // Use all CPU cores
+}
+
+// Tests in same collection run sequentially
+[Collection("Database")]
+public class OrderTests { }
+
+[Collection("Database")]
+public class CustomerTests { }  // Shares container with OrderTests
+```
+
+**Parallel-Safe Design**:
+- Use unique IDs per test (not hardcoded values)
+- Don't rely on database row counts
+- Each test cleans up its own data
+
+## Architecture Testing
+
+Validate architectural rules with tests:
+
+```csharp
+// Install: NetArchTest.Rules
+[Fact]
+public void Domain_ShouldNotDependOnInfrastructure()
+{
+    var result = Types
+        .InAssembly(typeof(Order).Assembly)
+        .ShouldNot()
+        .HaveDependencyOn("Infrastructure")
+        .GetResult();
+
+    Assert.True(result.IsSuccessful);
+}
+```
+
 ## Guiding Principle
 
 "Tests are documentation. A new developer should understand the system's behavior by reading the tests."

@@ -81,24 +81,25 @@ using YourNamespace.Application.Common.Interfaces;
 public sealed class CurrentUserService(
     IHttpContextAccessor httpContextAccessor) : ICurrentUserService
 {
-    private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
-
     public string? UserId =>
-        _httpContextAccessor.HttpContext?.User.FindFirst("sub")?.Value
-        ?? _httpContextAccessor.HttpContext?.User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value;
+        httpContextAccessor.HttpContext?.User.FindFirst("sub")?.Value
+        ?? httpContextAccessor.HttpContext?.User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value;
 
     public string? UserName =>
-        _httpContextAccessor.HttpContext?.User.FindFirst("name")?.Value
-        ?? _httpContextAccessor.HttpContext?.User.Identity?.Name;
+        httpContextAccessor.HttpContext?.User.FindFirst("name")?.Value
+        ?? httpContextAccessor.HttpContext?.User.Identity?.Name;
 
     public bool IsAuthenticated =>
-        _httpContextAccessor.HttpContext?.User.Identity?.IsAuthenticated ?? false;
+        httpContextAccessor.HttpContext?.User.Identity?.IsAuthenticated ?? false;
 }
 
 // Example entity using audit
+// Requires: Result.cs from the result-pattern skill
 namespace YourNamespace.Domain.Orders;
 
 using YourNamespace.Domain.Common;
+
+public enum OrderStatus { Draft, Submitted, Shipped, Delivered, Cancelled }
 
 public sealed class Order : AuditableEntity
 {

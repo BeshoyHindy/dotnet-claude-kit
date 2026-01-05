@@ -68,8 +68,13 @@ public sealed class PermissionHandler(IDbContext db)
         }
 
         // Fallback: Check database
+        if (!Guid.TryParse(userId, out var userGuid))
+            return;
+
+        // Note: AuthorizationHandler doesn't provide CancellationToken.
+        // For long-running checks, consider caching permissions at login.
         var hasPermission = await db.Users
-            .Where(u => u.Id == Guid.Parse(userId))
+            .Where(u => u.Id == userGuid)
             .SelectMany(u => u.Roles)
             .SelectMany(r => r.Permissions)
             .AnyAsync(p => p.Name == requirement.Permission);

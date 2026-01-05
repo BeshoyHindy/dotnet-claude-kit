@@ -1,3 +1,5 @@
+// Copy to: src/Api/Configuration/OpenApiConfiguration.cs
+// Requires: Swashbuckle.AspNetCore NuGet package
 // Api/Configuration/OpenApiConfiguration.cs
 namespace YourNamespace.Api.Configuration;
 

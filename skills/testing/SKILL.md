@@ -156,7 +156,64 @@ public class FakeOrderRepository : IOrderRepository
 
 ## Integration Tests
 
-### Testing with Real Database
+### Testing with Testcontainers (Recommended)
+
+Use real database containers for production-like testing:
+
+```csharp
+// Install: Testcontainers.PostgreSql or Testcontainers.MsSql
+public class OrderRepositoryTests : IAsyncLifetime
+{
+    private PostgreSqlContainer _postgres = null!;
+    private AppDbContext _db = null!;
+
+    public async Task InitializeAsync()
+    {
+        _postgres = new PostgreSqlBuilder()
+            .WithImage("postgres:16-alpine")
+            .Build();
+
+        await _postgres.StartAsync();
+
+        var options = new DbContextOptionsBuilder<AppDbContext>()
+            .UseNpgsql(_postgres.GetConnectionString())
+            .Options;
+
+        _db = new AppDbContext(options);
+        await _db.Database.MigrateAsync(); // Run real migrations
+    }
+
+    public async Task DisposeAsync()
+    {
+        await _db.DisposeAsync();
+        await _postgres.DisposeAsync();
+    }
+
+    [Fact]
+    public async Task Save_PersistsOrderWithItems()
+    {
+        var order = new Order(Guid.NewGuid());
+        order.AddItem(productId, quantity: 1, price: 10.00m);
+
+        _db.Orders.Add(order);
+        await _db.SaveChangesAsync();
+
+        var saved = await _db.Orders
+            .Include(o => o.Items)
+            .FirstAsync(o => o.Id == order.Id);
+
+        Assert.Single(saved.Items);
+    }
+}
+```
+
+**Why Testcontainers over SQLite:**
+- Tests run against same database as production
+- Catches provider-specific bugs (JSON columns, arrays, etc.)
+- Real migration testing
+- CI/CD compatible with Docker
+
+### Testing with SQLite (Faster, simpler)
 
 ```csharp
 // Use SQLite in-memory for realistic database behavior (not EF InMemory provider)
@@ -337,11 +394,132 @@ var order = new OrderBuilder()
     .Build();
 ```
 
+## Test Parallelization
+
+### xUnit Parallelization
+
+By default, xUnit runs test classes in parallel. Control this behavior:
+
+```csharp
+// Tests in the same collection run sequentially
+[Collection("Database")]
+public class OrderRepositoryTests { }
+
+[Collection("Database")]
+public class CustomerRepositoryTests { }
+
+// Tests in different collections run in parallel
+[Collection("Email")]
+public class EmailServiceTests { }
+```
+
+For integration tests sharing a database fixture:
+
+```csharp
+// Shared fixture - created once per collection
+public class DatabaseFixture : IAsyncLifetime
+{
+    public PostgreSqlContainer Postgres { get; private set; } = null!;
+    public string ConnectionString => Postgres.GetConnectionString();
+
+    public async Task InitializeAsync()
+    {
+        Postgres = new PostgreSqlBuilder()
+            .WithImage("postgres:16-alpine")
+            .Build();
+        await Postgres.StartAsync();
+    }
+
+    public async Task DisposeAsync() => await Postgres.DisposeAsync();
+}
+
+[CollectionDefinition("Database")]
+public class DatabaseCollection : ICollectionFixture<DatabaseFixture> { }
+
+[Collection("Database")]
+public class OrderTests(DatabaseFixture fixture)
+{
+    [Fact]
+    public async Task Test1()
+    {
+        await using var db = CreateDbContext(fixture.ConnectionString);
+        // Each test gets fresh DbContext but shares container
+    }
+}
+```
+
+### Parallel-Safe Test Design
+
+```csharp
+// BAD: Tests interfere with each other
+[Fact]
+public async Task CreateOrder_InsertsIntoDatabase()
+{
+    await _db.Orders.AddAsync(order);
+    await _db.SaveChangesAsync();
+
+    var count = await _db.Orders.CountAsync(); // Other tests affect this!
+    Assert.Equal(1, count);
+}
+
+// GOOD: Tests are isolated
+[Fact]
+public async Task CreateOrder_InsertsIntoDatabase()
+{
+    var orderId = Guid.NewGuid();
+    var order = new Order(orderId);
+
+    await _db.Orders.AddAsync(order);
+    await _db.SaveChangesAsync();
+
+    var exists = await _db.Orders.AnyAsync(o => o.Id == orderId);
+    Assert.True(exists);
+}
+```
+
+## Architecture Testing
+
+Validate architectural rules with tests:
+
+```csharp
+// Install: NetArchTest.Rules
+public class ArchitectureTests
+{
+    [Fact]
+    public void Domain_ShouldNotDependOnInfrastructure()
+    {
+        var result = Types
+            .InAssembly(typeof(Order).Assembly)
+            .ShouldNot()
+            .HaveDependencyOn("Infrastructure")
+            .GetResult();
+
+        Assert.True(result.IsSuccessful,
+            $"Domain depends on Infrastructure: {string.Join(", ", result.FailingTypeNames ?? [])}");
+    }
+
+    [Fact]
+    public void Handlers_ShouldBeSealed()
+    {
+        var result = Types
+            .InAssembly(typeof(CreateOrderHandler).Assembly)
+            .That()
+            .ImplementInterface(typeof(ICommandHandler<,>))
+            .Should()
+            .BeSealed()
+            .GetResult();
+
+        Assert.True(result.IsSuccessful);
+    }
+}
+```
+
 ## References
 
 Test Frameworks:
 - [references/with-xunit.md](references/with-xunit.md) - xUnit test framework
 - [references/with-mstest.md](references/with-mstest.md) - MSTest framework
+- [references/integration-tests.md](references/integration-tests.md) - Integration testing patterns
 
 Mocking Libraries:
 - [references/with-nsubstitute.md](references/with-nsubstitute.md) - NSubstitute mocking
